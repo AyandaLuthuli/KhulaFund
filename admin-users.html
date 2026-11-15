@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FundFinder - User Management</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      /* CSS Variables for Orange Design System */
+      :root {
+        --color-white: #ffffff;
+        --color-orange: #ff8c42; /* Softer orange */
+        --color-orange-medium: #ffa366;
+        --color-orange-light: #ffc8a8;
+        --color-orange-very-light: #ffe8db;
+        --color-dark: #333333;
+        --color-gray: #666666;
+        --color-gray-light: #f5f5f5;
+        --color-gray-border: #e0e0e0;
+        --font-heading: "Archivo Black", sans-serif;
+        --font-body: "Archivo", sans-serif;
+        --border-radius-sm: 4px;
+        --border-radius-md: 8px;
+        --border-radius-lg: 12px;
+        --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+        --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+        --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
+        --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: var(--font-body);
+        line-height: 1.6;
+        color: var(--color-dark);
+        background: var(--color-gray-light);
+      }
+
+      /* Header */
+      .header {
+        background: var(--color-white);
+        padding: 1rem 2rem;
+        border-bottom: 2px solid var(--color-orange);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: var(--shadow-sm);
+      }
+
+      .logo {
+        font-weight: 700;
+        font-size: 1.8rem;
+        color: var(--color-orange);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-family: var(--font-heading);
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 2rem;
+        align-items: center;
+      }
+
+      .nav-links a {
+        color: var(--color-dark);
+        text-decoration: none;
+        font-weight: 600;
+        padding: 0.5rem 1rem;
+        border-radius: var(--border-radius-md);
+        transition: var(--transition);
+        position: relative;
+      }
+
+      .nav-links a:hover,
+      .nav-links a.active {
+        color: var(--color-orange);
+      }
+
+      .nav-links a.active::after {
+        content: "";
+        position: absolute;
+        bottom: -2px;
+        left: 1rem;
+        right: 1rem;
+        height: 3px;
+        background: var(--color-orange);
+        border-radius: var(--border-radius-sm);
+      }
+
+      .user-menu {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .user-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--color-orange);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+      }
+
+      .user-details {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .user-name {
+        font-weight: 600;
+      }
+
+      .user-role {
+        font-size: 0.8rem;
+        color: var(--color-gray);
+      }
+
+      .logout-btn {
+        background: #ff4757;
+        color: white;
+        border: none;
+        padding: 0.6rem 1.2rem;
+        border-radius: var(--border-radius-md);
+        cursor: pointer;
+        font-weight: 600;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .logout-btn:hover {
+        background: #ff3742;
+        transform: translateY(-2px);
+      }
+
+      /* Main Content */
+      .main-content {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+
+      .access-denied {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: var(--color-white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+      }
+
+      .access-denied h2 {
+        color: #dc2626;
+        margin-bottom: 1rem;
+        font-family: var(--font-heading);
+      }
+
+      .access-denied p {
+        color: var(--color-gray);
+        margin-bottom: 2rem;
+      }
+
+      .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+      }
+
+      .page-header h1 {
+        color: var(--color-orange);
+        font-size: 2.5rem;
+        font-family: var(--font-heading);
+      }
+
+      /* Filters */
+      .filters {
+        background: var(--color-white);
+        padding: 1.5rem;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        margin-bottom: 2rem;
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        border-left: 4px solid var(--color-orange);
+      }
+
+      .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .filter-group label {
+        font-weight: 600;
+        color: var(--color-dark);
+        font-size: 0.9rem;
+      }
+
+      select,
+      input {
+        padding: 0.75rem;
+        border: 2px solid var(--color-gray-border);
+        border-radius: var(--border-radius-md);
+        background: var(--color-gray-light);
+        font-size: 0.9rem;
+        font-family: var(--font-body);
+        transition: var(--transition);
+      }
+
+      select:focus,
+      input:focus {
+        outline: none;
+        border-color: var(--color-orange);
+        background: var(--color-white);
+        box-shadow: 0 0 0 3px rgba(255, 140, 66, 0.1);
+      }
+
+      .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: var(--border-radius-md);
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-family: var(--font-body);
+      }
+
+      .btn-primary {
+        background: var(--color-orange);
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: var(--color-orange-medium);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-sm);
+      }
+
+      .btn-secondary {
+        background: var(--color-gray);
+        color: white;
+      }
+
+      .btn-secondary:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+      }
+
+      .btn-success {
+        background: #10b981;
+        color: white;
+      }
+
+      .btn-success:hover {
+        background: #059669;
+        transform: translateY(-2px);
+      }
+
+      .btn-danger {
+        background: #ef4444;
+        color: white;
+      }
+
+      .btn-danger:hover {
+        background: #dc2626;
+        transform: translateY(-2px);
+      }
+
+      .btn-small {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+      }
+
+      /* Users Table */
+      .users-table-container {
+        background: var(--color-white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+        transition: var(--transition);
+      }
+
+      .users-table-container:hover {
+        box-shadow: var(--shadow-lg);
+      }
+
+      .table-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--color-gray-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: var(--color-orange-very-light);
+      }
+
+      .table-header h3 {
+        color: var(--color-dark);
+        font-family: var(--font-heading);
+      }
+
+      .users-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .users-table th,
+      .users-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--color-gray-border);
+      }
+
+      .users-table th {
+        background: var(--color-orange-very-light);
+        font-weight: 600;
+        color: var(--color-orange);
+        font-family: var(--font-heading);
+      }
+
+      .users-table tr:hover {
+        background: var(--color-gray-light);
+      }
+
+      .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+
+      .status-active {
+        background: #e6f7ee;
+        color: #0a7b3e;
+      }
+
+      .status-pending {
+        background: #fff3cd;
+        color: #856404;
+      }
+
+      .status-inactive {
+        background: #fde8e8;
+        color: #c53030;
+      }
+
+      .role-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: var(--color-orange-very-light);
+        color: var(--color-orange);
+      }
+
+      .actions {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 3rem;
+      }
+
+      .spinner {
+        border: 4px solid rgba(0, 0, 0, 0.1);
+        border-left-color: var(--color-orange);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1rem;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .no-data {
+        text-align: center;
+        padding: 3rem;
+        color: var(--color-gray);
+      }
+
+      .no-data h3 {
+        color: var(--color-dark);
+        margin-bottom: 1rem;
+        font-family: var(--font-heading);
+      }
+
+      @media (max-width: 768px) {
+        .header {
+          flex-direction: column;
+          gap: 1rem;
+          padding: 1rem;
+        }
+
+        .nav-links {
+          gap: 0.5rem;
+        }
+
+        .nav-links a {
+          padding: 0.5rem;
+          font-size: 0.9rem;
+        }
+
+        .main-content {
+          padding: 1rem;
+        }
+
+        .filters {
+          flex-direction: column;
+        }
+
+        .users-table {
+          display: block;
+          overflow-x: auto;
+        }
+
+        .page-header {
+          flex-direction: column;
+          gap: 1rem;
+          text-align: center;
+        }
+
+        .page-header h1 {
+          font-size: 2rem;
+        }
+
+        .table-header {
+          flex-direction: column;
+          gap: 1rem;
+          text-align: center;
+        }
+
+        .actions {
+          flex-wrap: wrap;
+          justify-content: center;
+        }
+
+        .btn {
+          padding: 0.875rem 1.25rem;
+          font-size: 0.9rem;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .users-table th,
+        .users-table td {
+          padding: 0.75rem 0.5rem;
+          font-size: 0.8rem;
+        }
+
+        .status-badge,
+        .role-badge {
+          font-size: 0.7rem;
+          padding: 0.2rem 0.5rem;
+        }
+
+        .filters {
+          padding: 1rem;
+        }
+
+        .filter-group {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">
+        <i class="fas fa-hand-holding-usd"></i>
+        FundFinder Admin
+      </div>
+      <div class="nav-links">
+        <a href="admin-dashboard.html">Dashboard</a>
+        <a href="admin-users.html" class="active">User Management</a>
+        <a href="admin-reports.html">Reports & Analytics</a>
+        <a href="admin-funding.html">Funding Management</a>
+      </div>
+      <div class="user-menu">
+        <div class="user-info">
+          <div class="user-avatar" id="user-avatar">A</div>
+          <div class="user-details">
+            <div class="user-name" id="userName">Admin</div>
+            <div class="user-role">Administrator</div>
+          </div>
+        </div>
+        <button class="logout-btn" onclick="logout()">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <div id="accessDenied" class="access-denied" style="display: none">
+        <h2>Access Denied</h2>
+        <p>You need administrator privileges to access this page.</p>
+        <div style="display: flex; gap: 1rem; justify-content: center">
+          <a href="index.html" class="btn btn-primary">Go to Main Site</a>
+          <a href="login.html" class="btn btn-secondary">Login as Admin</a>
+        </div>
+      </div>
+
+      <div id="adminContent" style="display: none">
+        <div class="page-header">
+          <h1>User Management</h1>
+          <div class="table-stats" id="tableStats">Loading...</div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters">
+          <div class="filter-group">
+            <label for="roleFilter">Role</label>
+            <select id="roleFilter" onchange="filterUsers()">
+              <option value="all">All Roles</option>
+              <option value="SMME">SMME</option>
+              <option value="FUNDER">Funder</option>
+              <option value="ADMIN">Admin</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="statusFilter">Status</label>
+            <select id="statusFilter" onchange="filterUsers()">
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="pending">Pending</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="searchFilter">Search</label>
+            <input
+              type="text"
+              id="searchFilter"
+              placeholder="Search by email..."
+              oninput="filterUsers()"
+            />
+          </div>
+
+          <div style="flex: 1"></div>
+
+          <button class="btn btn-primary" onclick="exportUsers()">
+            <i class="fas fa-download"></i> Export Users
+          </button>
+        </div>
+
+        <!-- Users Table -->
+        <div class="users-table-container">
+          <div class="table-header">
+            <h3>System Users</h3>
+            <div class="table-actions">
+              <button
+                class="btn btn-success btn-small"
+                onclick="approveAllPending()"
+              >
+                <i class="fas fa-check"></i> Approve All Pending
+              </button>
+            </div>
+          </div>
+
+          <div id="usersTable">
+            <div class="loading">
+              <div class="spinner"></div>
+              <p>Loading users...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SUPABASE_URL = "https://ovvvwbtexnbxzacizokr.supabase.co";
+      const SUPABASE_ANON_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dnZ3YnRleG5ieHphY2l6b2tyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1ODQ5OTEsImV4cCI6MjA3OTE2MDk5MX0.Ii21cw1Iyops8Zo784P-25NKz2m-TCyJ2zWwI4V1kcE";
+
+      const supabaseClient = window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY
+      );
+      let allUsers = [];
+
+      // Check admin authentication using main user session
+      document.addEventListener("DOMContentLoaded", async () => {
+        await checkAdminAuth();
+      });
+
+      async function checkAdminAuth() {
+        const userData = localStorage.getItem("fundfinder_user");
+
+        if (!userData) {
+          showAccessDenied();
+          return;
+        }
+
+        const user = JSON.parse(userData);
+
+        // Check if user is ADMIN and active
+        const { data: userRecord, error } = await supabaseClient
+          .from("users")
+          .select("*")
+          .eq("id", user.id)
+          .single();
+
+        if (
+          error ||
+          !userRecord ||
+          userRecord.role !== "ADMIN" ||
+          !userRecord.active
+        ) {
+          showAccessDenied();
+          return;
+        }
+
+        // User is valid admin, show admin content
+        document.getElementById("userName").textContent = user.email;
+        document.getElementById("user-avatar").textContent = user.email
+          .charAt(0)
+          .toUpperCase();
+        document.getElementById("adminContent").style.display = "block";
+
+        await loadUsers();
+      }
+
+      function showAccessDenied() {
+        document.getElementById("accessDenied").style.display = "block";
+        document.getElementById("adminContent").style.display = "none";
+      }
+
+      async function loadUsers() {
+        try {
+          const { data: users, error } = await supabaseClient
+            .from("users")
+            .select("*")
+            .order("created_at", { ascending: false });
+
+          if (error) throw error;
+
+          allUsers = users;
+          displayUsers(users);
+        } catch (error) {
+          console.error("Error loading users:", error);
+          document.getElementById("usersTable").innerHTML = `
+            <div class="no-data">
+              <p>Error loading users. Please try again.</p>
+            </div>
+          `;
+        }
+      }
+
+      function displayUsers(users) {
+        const tableStats = document.getElementById("tableStats");
+        const activeCount = users.filter((u) => u.active).length;
+        const pendingCount = users.filter((u) => !u.active).length;
+
+        tableStats.innerHTML = `
+          Showing ${users.length} users (${activeCount} active, ${pendingCount} pending)
+        `;
+
+        if (users.length === 0) {
+          document.getElementById("usersTable").innerHTML = `
+            <div class="no-data">
+              <p>No users found matching your criteria.</p>
+            </div>
+          `;
+          return;
+        }
+
+        const usersTable = document.getElementById("usersTable");
+        usersTable.innerHTML = `
+          <table class="users-table">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Last Login</th>
+                <th>Registered</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${users
+                .map(
+                  (user) => `
+                <tr>
+                  <td>
+                    <div style="font-weight: 600;">${user.email}</div>
+                    <div style="font-size: 0.8rem; color: #666;">ID: ${user.id.substring(
+                      0,
+                      8
+                    )}...</div>
+                  </td>
+                  <td>
+                    <span class="role-badge">${user.role}</span>
+                  </td>
+                  <td>
+                    <span class="status-badge ${
+                      user.active ? "status-active" : "status-pending"
+                    }">
+                      ${user.active ? "Active" : "Pending Approval"}
+                    </span>
+                  </td>
+                  <td>
+                    ${
+                      user.last_login
+                        ? new Date(user.last_login).toLocaleDateString()
+                        : "Never"
+                    }
+                  </td>
+                  <td>
+                    ${new Date(user.created_at).toLocaleDateString()}
+                  </td>
+                  <td>
+                    <div class="actions">
+                      ${
+                        !user.active
+                          ? `
+                        <button class="btn btn-success btn-small" onclick="approveUser('${user.id}')">
+                          <i class="fas fa-check"></i> Approve
+                        </button>
+                      `
+                          : `
+                        <button class="btn btn-danger btn-small" onclick="deactivateUser('${user.id}')">
+                          <i class="fas fa-times"></i> Deactivate
+                        </button>
+                      `
+                      }
+                      <button class="btn btn-primary btn-small" onclick="viewUserDetails('${
+                        user.id
+                      }')">
+                        <i class="fas fa-eye"></i> View
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              `
+                )
+                .join("")}
+            </tbody>
+          </table>
+        `;
+      }
+
+      function filterUsers() {
+        const roleFilter = document.getElementById("roleFilter").value;
+        const statusFilter = document.getElementById("statusFilter").value;
+        const searchFilter = document
+          .getElementById("searchFilter")
+          .value.toLowerCase();
+
+        let filteredUsers = allUsers;
+
+        // Filter by role
+        if (roleFilter !== "all") {
+          filteredUsers = filteredUsers.filter(
+            (user) => user.role === roleFilter
+          );
+        }
+
+        // Filter by status
+        if (statusFilter !== "all") {
+          if (statusFilter === "active") {
+            filteredUsers = filteredUsers.filter((user) => user.active);
+          } else if (statusFilter === "pending") {
+            filteredUsers = filteredUsers.filter((user) => !user.active);
+          } else if (statusFilter === "inactive") {
+            filteredUsers = filteredUsers.filter((user) => !user.active);
+          }
+        }
+
+        // Filter by search
+        if (searchFilter) {
+          filteredUsers = filteredUsers.filter(
+            (user) =>
+              user.email.toLowerCase().includes(searchFilter) ||
+              user.id.toLowerCase().includes(searchFilter)
+          );
+        }
+
+        displayUsers(filteredUsers);
+      }
+
+      async function approveUser(userId) {
+        if (!confirm("Are you sure you want to approve this user?")) return;
+
+        try {
+          const { error } = await supabaseClient
+            .from("users")
+            .update({ active: true })
+            .eq("id", userId);
+
+          if (error) throw error;
+
+          alert("User approved successfully!");
+          await loadUsers(); // Reload the users list
+        } catch (error) {
+          console.error("Error approving user:", error);
+          alert("Error approving user. Please try again.");
+        }
+      }
+
+      async function deactivateUser(userId) {
+        if (!confirm("Are you sure you want to deactivate this user?")) return;
+
+        try {
+          const { error } = await supabaseClient
+            .from("users")
+            .update({ active: false })
+            .eq("id", userId);
+
+          if (error) throw error;
+
+          alert("User deactivated successfully!");
+          await loadUsers(); // Reload the users list
+        } catch (error) {
+          console.error("Error deactivating user:", error);
+          alert("Error deactivating user. Please try again.");
+        }
+      }
+
+      async function approveAllPending() {
+        const pendingUsers = allUsers.filter((user) => !user.active);
+        if (pendingUsers.length === 0) {
+          alert("No pending users to approve.");
+          return;
+        }
+
+        if (
+          !confirm(
+            `Are you sure you want to approve all ${pendingUsers.length} pending users?`
+          )
+        )
+          return;
+
+        try {
+          const { error } = await supabaseClient
+            .from("users")
+            .update({ active: true })
+            .eq("active", false);
+
+          if (error) throw error;
+
+          alert(`Successfully approved ${pendingUsers.length} users!`);
+          await loadUsers(); // Reload the users list
+        } catch (error) {
+          console.error("Error approving all users:", error);
+          alert("Error approving users. Please try again.");
+        }
+      }
+
+      function viewUserDetails(userId) {
+        const user = allUsers.find((u) => u.id === userId);
+        if (user) {
+          const details = `
+Email: ${user.email}
+Role: ${user.role}
+Status: ${user.active ? "Active" : "Pending"}
+User ID: ${user.id}
+Registered: ${new Date(user.created_at).toLocaleString()}
+Last Login: ${
+            user.last_login
+              ? new Date(user.last_login).toLocaleString()
+              : "Never"
+          }
+          `;
+          alert(details);
+        }
+      }
+
+      function exportUsers() {
+        // Simple CSV export
+        const headers = ["Email", "Role", "Status", "Last Login", "Registered"];
+        const csvData = allUsers.map((user) => [
+          user.email,
+          user.role,
+          user.active ? "Active" : "Pending",
+          user.last_login
+            ? new Date(user.last_login).toLocaleDateString()
+            : "Never",
+          new Date(user.created_at).toLocaleDateString(),
+        ]);
+
+        const csvContent = [headers, ...csvData]
+          .map((row) => row.map((field) => `"${field}"`).join(","))
+          .join("\n");
+
+        const blob = new Blob([csvContent], { type: "text/csv" });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `fundfinder-users-${
+          new Date().toISOString().split("T")[0]
+        }.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      }
+
+      function logout() {
+        localStorage.removeItem("fundfinder_user");
+        window.location.href = "index.html";
+      }
+    </script>
+  </body>
+</html>
