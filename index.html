@@ -1,757 +1,576 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FundFinder - AI Funding for SMMEs</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <style>
-      /* CSS Variables for Orange Design System */
-      :root {
-        --color-white: #ffffff;
-        --color-orange: #e65100;
-        --color-orange-medium: #ff6d00;
-        --color-orange-light: #ffab40;
-        --color-orange-very-light: #ffe0b2;
-        --color-dark: #333333;
-        --color-gray: #666666;
-        --color-gray-light: #f5f5f5;
-        --color-gray-border: #e0e0e0;
-        --font-heading: "Archivo Black", sans-serif;
-        --font-body: "Archivo", sans-serif;
-        --border-radius-sm: 4px;
-        --border-radius-md: 8px;
-        --border-radius-lg: 12px;
-        --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
-        --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
-        --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
-        --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-      }
-
-      /* Reset & Base */
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      html {
-        scroll-behavior: smooth;
-      }
-
-      body {
-        font-family: var(--font-body);
-        line-height: 1.6;
-        color: var(--color-dark);
-        background-color: var(--color-white);
-        font-weight: 500;
-        overflow-x: hidden;
-      }
-
-      h1,
-      h2,
-      h3,
-      h4,
-      h5,
-      h6 {
-        font-family: var(--font-heading);
-        line-height: 1.2;
-        margin-bottom: 1.5rem;
-        color: var(--color-dark);
-      }
-
-      h1 {
-        font-size: clamp(2.5rem, 5vw, 4rem);
-        line-height: 1.1;
-      }
-
-      h2 {
-        font-size: clamp(2rem, 4vw, 3rem);
-      }
-
-      h3 {
-        font-size: clamp(1.5rem, 3vw, 2rem);
-      }
-
-      p {
-        margin-bottom: 1.5rem;
-      }
-
-      a {
-        color: inherit;
-        text-decoration: none;
-        transition: var(--transition);
-      }
-
-      img {
-        max-width: 100%;
-        display: block;
-      }
-
-      /* Utility Classes */
-      .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0 1.5rem;
-      }
-
-      .section {
-        padding: 5rem 0;
-      }
-
-      .text-center {
-        text-align: center;
-      }
-
-      .mb-0 {
-        margin-bottom: 0;
-      }
-
-      /* Geometric Background Elements */
-      .bg-element {
-        position: absolute;
-        z-index: -1;
-        opacity: 0.7;
-      }
-
-      .bg-circle {
-        width: 300px;
-        height: 300px;
-        border-radius: 50%;
-        background: radial-gradient(
-          circle,
-          var(--color-orange-light) 0%,
-          transparent 70%
-        );
-        top: 10%;
-        right: 5%;
-      }
-
-      .bg-triangle {
-        width: 0;
-        height: 0;
-        border-left: 150px solid transparent;
-        border-right: 150px solid transparent;
-        border-bottom: 260px solid var(--color-orange-very-light);
-        bottom: 10%;
-        left: 5%;
-        opacity: 0.4;
-        transform: rotate(25deg);
-      }
-
-      .bg-square {
-        width: 200px;
-        height: 200px;
-        background-color: var(--color-orange-light);
-        top: 60%;
-        right: 15%;
-        transform: rotate(45deg);
-        opacity: 0.3;
-      }
-
-      /* Navbar */
-      nav.navbar {
-        position: sticky;
-        top: 0;
-        background: var(--color-white);
-        padding: 1.5rem 0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        z-index: 1000;
-        box-shadow: var(--shadow-sm);
-        border-bottom: 2px solid var(--color-orange);
-      }
-
-      nav .logo {
-        font-family: var(--font-heading);
-        font-size: 1.75rem;
-        color: var(--color-orange);
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-
-      nav .logo-img {
-        height: 40px;
-        width: auto;
-        display: inline-block;
-        vertical-align: middle;
-      }
-
-      nav .logo-dot {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        background: var(--color-orange);
-        display: inline-block;
-      }
-
-      nav .nav-links {
-        display: flex;
-        gap: 2rem;
-      }
-
-      nav .nav-links a {
-        color: var(--color-dark);
-        font-weight: 600;
-        padding: 0.5rem 0;
-        position: relative;
-      }
-
-      nav .nav-links a::after {
-        content: "";
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 0;
-        height: 3px;
-        background: var(--color-orange);
-        transition: var(--transition);
-        border-radius: var(--border-radius-sm);
-      }
-
-      nav .nav-links a:hover {
-        color: var(--color-orange);
-      }
-
-      nav .nav-links a:hover::after {
-        width: 100%;
-      }
-
-      /* Hero Section */
-      .hero {
-        position: relative;
-        padding: 3rem 0 6rem;
-        overflow: hidden;
-        background: linear-gradient(
-          135deg,
-          var(--color-white) 0%,
-          var(--color-gray-light) 100%
-        );
-      }
-
-      .hero-content {
-        max-width: 800px;
-        margin: 0 auto;
-        text-align: center;
-        position: relative;
-        z-index: 2;
-      }
-
-      .hero-content h1 {
-        margin-bottom: 1.5rem;
-        color: var(--color-orange);
-      }
-
-      .hero-content p {
-        font-size: 1.25rem;
-        margin-bottom: 2.5rem;
-        max-width: 600px;
-        margin-left: auto;
-        margin-right: auto;
-        color: var(--color-gray);
-      }
-
-      .hero-buttons {
-        display: flex;
-        gap: 1rem;
-        justify-content: center;
-        flex-wrap: wrap;
-      }
-
-      .btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 1rem 2rem;
-        font-weight: 600;
-        text-align: center;
-        border: none;
-        border-radius: var(--border-radius-md);
-        transition: var(--transition);
-        font-family: var(--font-body);
-        font-size: 1rem;
-        cursor: pointer;
-        position: relative;
-        overflow: hidden;
-      }
-
-      .btn::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(
-          90deg,
-          transparent,
-          rgba(255, 255, 255, 0.4),
-          transparent
-        );
-        transition: var(--transition);
-      }
-
-      .btn:hover::before {
-        left: 100%;
-      }
-
-      .btn-primary {
-        background: var(--color-orange);
-        color: white;
-        box-shadow: var(--shadow-md);
-      }
-
-      .btn-primary:hover {
-        background: var(--color-orange-medium);
-        transform: translateY(-3px);
-        box-shadow: var(--shadow-lg);
-      }
-
-      .btn-secondary {
-        background: transparent;
-        color: var(--color-orange);
-        border: 2px solid var(--color-orange);
-        box-shadow: var(--shadow-sm);
-      }
-
-      .btn-secondary:hover {
-        background: var(--color-orange);
-        color: white;
-        transform: translateY(-3px);
-        box-shadow: var(--shadow-lg);
-      }
-
-      /* Features Section */
-      .features {
-        position: relative;
-        background-color: var(--color-white);
-      }
-
-      .features h2 {
-        text-align: center;
-        margin-bottom: 3rem;
-        color: var(--color-orange);
-      }
-
-      .feature-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 2rem;
-      }
-
-      .feature-card {
-        background: var(--color-white);
-        padding: 2.5rem 2rem;
-        border-radius: var(--border-radius-lg);
-        transition: var(--transition);
-        position: relative;
-        box-shadow: var(--shadow-sm);
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        height: 100%;
-        border: 1px solid var(--color-gray-border);
-      }
-
-      .feature-card:hover {
-        transform: translateY(-5px);
-        box-shadow: var(--shadow-lg);
-        border-color: var(--color-orange-light);
-      }
-
-      .feature-icon {
-        width: 70px;
-        height: 70px;
-        border-radius: var(--border-radius-md);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 1.5rem;
-        font-size: 1.75rem;
-        color: white;
-        background: var(--color-orange);
-      }
-
-      .feature-card h3 {
-        margin-bottom: 1rem;
-        font-size: 1.5rem;
-      }
-
-      .feature-card p {
-        flex-grow: 1;
-        color: var(--color-gray);
-      }
-
-      /* How It Works */
-      .how-it-works {
-        position: relative;
-        background: var(--color-gray-light);
-      }
-
-      .how-it-works h2 {
-        text-align: center;
-        margin-bottom: 3rem;
-        color: var(--color-orange);
-      }
-
-      .steps {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 2rem;
-        counter-reset: step-counter;
-      }
-
-      .step {
-        background: var(--color-white);
-        padding: 2.5rem 2rem;
-        border-radius: var(--border-radius-lg);
-        transition: var(--transition);
-        position: relative;
-        box-shadow: var(--shadow-sm);
-        display: flex;
-        flex-direction: column;
-        text-align: center;
-        border-top: 5px solid var(--color-orange);
-      }
-
-      .step::before {
-        counter-increment: step-counter;
-        content: counter(step-counter);
-        position: absolute;
-        top: -20px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 40px;
-        height: 40px;
-        background: var(--color-white);
-        color: var(--color-orange);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: var(--font-heading);
-        font-weight: 600;
-        font-size: 1.25rem;
-        border-radius: 50%;
-        box-shadow: var(--shadow-sm);
-        border: 3px solid var(--color-orange);
-      }
-
-      .step:hover {
-        transform: translateY(-5px);
-        box-shadow: var(--shadow-lg);
-      }
-
-      .step h3 {
-        margin-top: 0.5rem;
-        margin-bottom: 1rem;
-      }
-
-      .step p {
-        color: var(--color-gray);
-      }
-
-      /* Partnership Section */
-      .partnership {
-        position: relative;
-        background-color: var(--color-white);
-      }
-
-      .partnership h2 {
-        text-align: center;
-        margin-bottom: 3rem;
-        color: var(--color-orange);
-      }
-
-      .partnership-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 2rem;
-        max-width: 800px;
-        margin: 0 auto;
-        text-align: center;
-      }
-
-      .partnership-logo {
-        max-width: 300px;
-        height: auto;
-        border-radius: var(--border-radius-md);
-        box-shadow: var(--shadow-md);
-        transition: var(--transition);
-      }
-
-      .partnership-logo:hover {
-        transform: scale(1.05);
-        box-shadow: var(--shadow-lg);
-      }
-
-      .partnership-text {
-        font-size: 1.125rem;
-        line-height: 1.7;
-        color: var(--color-gray);
-      }
-
-      .partnership-text strong {
-        color: var(--color-orange);
-      }
-
-      /* Footer */
-      footer {
-        background: var(--color-dark);
-        color: var(--color-white);
-        text-align: center;
-        padding: 3rem 0;
-        position: relative;
-        overflow: hidden;
-      }
-
-      footer::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: var(--color-orange);
-      }
-
-      footer p {
-        color: rgba(255, 255, 255, 0.8);
-      }
-
-      /* Responsive */
-      @media (max-width: 768px) {
-        .section {
-          padding: 4rem 0;
-        }
-
-        nav.navbar {
-          flex-direction: column;
-          gap: 1rem;
-          padding: 1rem 0;
-        }
-
-        nav .nav-links {
-          gap: 1.5rem;
-        }
-
-        .hero {
-          padding: 6rem 0 4rem;
-        }
-
-        .hero-content p {
-          font-size: 1.125rem;
-        }
-
-        .hero-buttons {
-          flex-direction: column;
-          align-items: center;
-        }
-
-        .btn {
-          width: 100%;
-          max-width: 300px;
-          justify-content: center;
-        }
-
-        .feature-grid,
-        .steps {
-          grid-template-columns: 1fr;
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FundFinder — AI Funding for South African Youth &amp; SMMEs</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#fff3e0', 100: '#ffe0b2', 200: '#ffcc80', 300: '#ffb74d',
+              400: '#ffa726', 500: '#ff6d00', 600: '#e65100', 700: '#bf360c',
+              800: '#9a3412', 900: '#7c2d12',
+            },
+            slate: { 850: '#151e32', 900: '#0f172a', 950: '#090d16' }
+          },
+          boxShadow: {
+            'glass': '0 4px 30px rgba(15, 23, 42, 0.05)',
+            'elevated': '0 20px 40px -15px rgba(15, 23, 42, 0.09)',
+            'glow': '0 0 45px -10px rgba(230, 81, 0, 0.30)',
+          }
         }
       }
+    };
+  </script>
+  <style>
+    .bg-youth-grid {
+      background-size: 36px 36px;
+      background-image:
+        linear-gradient(to right, rgba(15, 23, 42, 0.035) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(15, 23, 42, 0.035) 1px, transparent 1px);
+    }
+    .reveal {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: all 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .reveal.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #f8fafc; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-900 font-sans antialiased selection:bg-brand-600 selection:text-white overflow-x-hidden">
 
-      @media (max-width: 480px) {
-        .hero-content h1 {
-          font-size: 2.25rem;
-        }
+  <!-- Sticky Navbar -->
+  <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-glass">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-20">
+        <a href="#" class="flex items-center gap-2.5 group">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-600 to-brand-500 flex items-center justify-center text-white shadow-md shadow-brand-600/25 group-hover:scale-105 transition-transform">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+            </svg>
+          </div>
+          <div class="flex flex-col">
+            <div class="flex items-center gap-1.5">
+              <span class="font-display font-extrabold text-xl tracking-tight text-slate-900">FundFinder</span>
+              <span class="w-2 h-2 rounded-full bg-brand-600"></span>
+            </div>
+            <span class="text-[10px] uppercase tracking-widest font-bold text-brand-600 -mt-1">Youth &amp; SMME Funding</span>
+          </div>
+        </a>
 
-        .feature-card,
-        .step {
-          padding: 2rem 1.5rem;
-        }
+        <nav class="hidden md:flex items-center gap-7">
+          <a href="#features" class="text-sm font-medium text-slate-600 hover:text-brand-600 transition-colors">Why FundFinder</a>
+          <a href="funders.html" class="text-sm font-medium text-slate-600 hover:text-brand-600 transition-colors">Browse Funds</a>
+          <a href="#how-it-works" class="text-sm font-medium text-slate-600 hover:text-brand-600 transition-colors">How It Works</a>
+          <a href="#partners" class="text-sm font-medium text-slate-600 hover:text-brand-600 transition-colors">Funding Ecosystem</a>
+        </nav>
 
-        .bg-element {
-          display: none;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <!-- Background Elements -->
-    <div class="bg-element bg-circle"></div>
-    <div class="bg-element bg-triangle"></div>
-    <div class="bg-element bg-square"></div>
+        <div class="hidden md:flex items-center gap-3">
+          <a href="login.html" class="px-4 py-2.5 text-sm font-semibold text-slate-700 hover:text-slate-900 rounded-xl hover:bg-slate-100 transition-colors">Sign In</a>
+          <a href="login.html" class="px-5 py-2.5 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-500 rounded-xl shadow-sm shadow-brand-600/20 transition-all duration-200 flex items-center gap-2">
+            <span>Match My Funding</span>
+            <i class="fas fa-arrow-right text-xs"></i>
+          </a>
+        </div>
 
-    <!-- Navbar -->
-    <nav class="navbar container">
-      <div class="logo">
-        <span>FundFinder</span>
-        <span class="logo-dot"></span
-        ><!-- Logo placeholder - you can replace this with your actual logo -->
-        <img src="imgs/ELIDZ LOGO.png" alt="FundFinder Logo" class="logo-img" />
+        <div class="md:hidden flex items-center">
+          <button id="mobile-menu-btn" aria-label="Toggle Menu" class="p-2.5 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors">
+            <i class="fas fa-bars text-xl" id="mobile-menu-icon"></i>
+          </button>
+        </div>
       </div>
-      <div class="nav-links">
-        <a href="#features">Features</a>
-        <a href="#how-it-works">How It Works</a>
-        <a href="funders.html">Browse Funds</a>
-      </div>
-    </nav>
+    </div>
 
+    <div id="mobile-menu" class="hidden md:hidden bg-white border-b border-slate-200 px-4 pt-2 pb-6 space-y-2 shadow-xl">
+      <a href="#features" onclick="closeMobileMenu()" class="block px-3 py-2.5 rounded-xl text-base font-medium text-slate-700 hover:bg-brand-50 hover:text-brand-600">Why FundFinder</a>
+      <a href="funders.html" class="block px-3 py-2.5 rounded-xl text-base font-medium text-slate-700 hover:bg-brand-50 hover:text-brand-600">Browse Funds</a>
+      <a href="#how-it-works" onclick="closeMobileMenu()" class="block px-3 py-2.5 rounded-xl text-base font-medium text-slate-700 hover:bg-brand-50 hover:text-brand-600">How It Works</a>
+      <a href="#partners" onclick="closeMobileMenu()" class="block px-3 py-2.5 rounded-xl text-base font-medium text-slate-700 hover:bg-brand-50 hover:text-brand-600">Funding Ecosystem</a>
+      <div class="pt-3 border-t border-slate-100 flex flex-col gap-2.5">
+        <a href="login.html" class="w-full py-2.5 text-center text-sm font-semibold text-slate-700 bg-slate-100 rounded-xl">Sign In</a>
+        <a href="login.html" class="w-full py-2.5 text-center text-sm font-semibold text-white bg-brand-600 rounded-xl shadow-sm">Match My Funding</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
     <!-- Hero -->
-    <section class="hero">
-      <div class="container">
-        <div class="hero-content">
-          <h1>Find Your Perfect Funding Match</h1>
-          <p>
-            FundFinder uses intelligent AI to connect South African SMMEs with
-            the right funding opportunities. Stop searching and start growing
-            with our smart matching technology.
+    <section class="relative pt-12 pb-20 lg:pt-20 lg:pb-28 bg-youth-grid overflow-hidden">
+      <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[920px] h-[460px] bg-gradient-to-tr from-brand-600/12 via-brand-400/10 to-transparent rounded-full blur-3xl pointer-events-none -z-10"></div>
+
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-3xl mx-auto text-center">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-brand-200/80 shadow-sm mb-6">
+            <span class="px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider bg-brand-600 text-white rounded-full">Youth &amp; SMME Capital</span>
+            <span class="text-xs sm:text-sm font-medium text-slate-700">AI-Powered Funding Discovery &amp; Application Engine</span>
+          </div>
+
+          <h1 class="font-display font-extrabold text-4xl sm:text-5xl lg:text-6xl tracking-tight text-slate-900 leading-[1.12] mb-6">
+            Find Your Perfect <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-brand-500">Youth &amp; SMME</span> Funding Match
+          </h1>
+
+          <p class="text-base sm:text-lg lg:text-xl text-slate-600 leading-relaxed max-w-2xl mx-auto mb-9 font-normal">
+            FundFinder uses intelligent AI to connect South African youth and SMMEs with the right funding opportunities. Stop searching and start growing with our smart matching technology.
           </p>
 
-          <div class="hero-buttons">
-            <a href="login.html" class="btn btn-primary">
-              <i class="fas fa-rocket"></i>
-              Get Started
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
+            <a href="login.html" class="w-full sm:w-auto px-7 py-4 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold text-base shadow-lg shadow-brand-600/25 hover:shadow-brand-600/40 hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2.5">
+              <i class="fas fa-bolt text-sm"></i>
+              <span>Get Started Free</span>
             </a>
-            <a href="funders.html" class="btn btn-secondary">
-              <i class="fas fa-search"></i>
-              Browse Funds
+            <a href="funders.html" class="w-full sm:w-auto px-7 py-4 rounded-xl bg-white hover:bg-brand-50/60 text-slate-800 font-semibold text-base border border-slate-200 hover:border-brand-300 shadow-sm hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2.5">
+              <i class="fas fa-search-dollar text-brand-600 text-sm"></i>
+              <span>Browse Live Funds</span>
             </a>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-3xl mx-auto pt-6 border-t border-slate-200/80 text-center">
+            <div class="p-2">
+              <div class="font-display font-extrabold text-xl sm:text-2xl text-slate-900">120+ Funds</div>
+              <div class="text-xs text-slate-500 font-medium">Youth Grants, DFIs &amp; ESD</div>
+            </div>
+            <div class="p-2 sm:border-l border-slate-200/80">
+              <div class="font-display font-extrabold text-xl sm:text-2xl text-brand-600">R5k–R1.5M+</div>
+              <div class="text-xs text-slate-500 font-medium">Seed Grants &amp; Growth Capital</div>
+            </div>
+            <div class="p-2 sm:border-l border-slate-200/80">
+              <div class="font-display font-extrabold text-xl sm:text-2xl text-slate-900">Youth &amp; SMMEs</div>
+              <div class="text-xs text-slate-500 font-medium">Ages 18–35 &amp; Small Businesses</div>
+            </div>
+            <div class="p-2 sm:border-l border-slate-200/80">
+              <div class="font-display font-extrabold text-xl sm:text-2xl text-emerald-600">R0 Fee</div>
+              <div class="text-xs text-slate-500 font-medium">Direct Funder Matching</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="launchpad" class="mt-14 lg:mt-16 max-w-5xl mx-auto scroll-mt-24 reveal">
+          <div class="rounded-2xl bg-slate-900 p-2 sm:p-3 shadow-2xl shadow-slate-900/20 border border-slate-800">
+            <div class="flex items-center justify-between px-4 py-2.5 bg-slate-950 rounded-t-xl border-b border-slate-800">
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-rose-500/80"></span>
+                <span class="w-3 h-3 rounded-full bg-amber-500/80"></span>
+                <span class="w-3 h-3 rounded-full bg-emerald-500/80"></span>
+              </div>
+              <div class="hidden sm:flex items-center gap-2 px-3 py-1 rounded-md bg-slate-900 border border-slate-800 text-[11px] text-slate-400 font-mono">
+                <i class="fas fa-sparkles text-brand-500 text-[10px]"></i>
+                <span>app.fundfinder.co.za/funding-matches</span>
+              </div>
+              <div class="text-[11px] font-semibold text-emerald-400 flex items-center gap-1.5"></div>
+            </div>
+
+            <div class="bg-slate-50 rounded-b-xl p-4 sm:p-6 lg:p-8 text-left">
+              <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-200">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-brand-600">Funding Workspace</span>
+                    <span class="px-2 py-0.5 text-[10px] font-semibold bg-brand-50 text-brand-700 border border-brand-200 rounded-full">AI-Matched</span>
+                  </div>
+                  <h2 class="font-display font-bold text-lg sm:text-xl text-slate-900 mt-1">Active Grants, Seed Capital &amp; Growth Finance for Youth &amp; SMMEs</h2>
+                </div>
+                <a href="funders.html" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-brand-600 text-white text-xs font-semibold shadow-sm flex items-center gap-2 transition-colors">
+                  <i class="fas fa-magic text-brand-400"></i>
+                  <span>View All Funds</span>
+                </a>
+              </div>
+
+              <div class="flex flex-wrap gap-2 mt-5" role="tablist" aria-label="Funding Categories">
+                <button onclick="switchTab('youthGrants')" id="tab-youthGrants" class="launchpad-tab px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-brand-600 text-white shadow-sm transition-all flex items-center gap-2">
+                  <i class="fas fa-seedling"></i>
+                  <span>Youth Startup Grants</span>
+                </button>
+                <button onclick="switchTab('smmeGrowth')" id="tab-smmeGrowth" class="launchpad-tab px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-white text-slate-700 border border-slate-200 hover:border-brand-300 transition-all flex items-center gap-2">
+                  <i class="fas fa-chart-line text-brand-600"></i>
+                  <span>SMME Growth Funding</span>
+                </button>
+                <button onclick="switchTab('incubators')" id="tab-incubators" class="launchpad-tab px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-white text-slate-700 border border-slate-200 hover:border-brand-300 transition-all flex items-center gap-2">
+                  <i class="fas fa-hand-holding-dollar text-brand-600"></i>
+                  <span>Incubators &amp; Stipends</span>
+                </button>
+              </div>
+
+              <div id="launchpad-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 transition-opacity duration-200"></div>
+            </div>
           </div>
         </div>
       </div>
     </section>
-    <img
-      src="imgs/IMG_2153.jpg"
-      alt="FundFinder Illustration"
-      style="
-        display: block;
-        margin: 0 auto;
-        max-width: 700px;
-        width: 100%;
-        padding-bottom: 2rem;
-      "
-    />
+
     <!-- Features -->
-    <section id="features" class="section features">
-      <div class="container">
-        <h2>Why FundFinder?</h2>
-        <div class="feature-grid">
-          <div class="feature-card">
-            <div class="feature-icon">
-              <i class="fas fa-bolt"></i>
+    <section id="features" class="py-20 lg:py-28 border-t border-slate-200/70 scroll-mt-16">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-3xl mx-auto text-center mb-16 reveal">
+          <span class="text-xs font-bold uppercase tracking-widest text-brand-700">Built Exclusively for Funding Access</span>
+          <h2 class="font-display font-extrabold text-3xl sm:text-4xl text-slate-900 mt-2 mb-4">Why FundFinder?</h2>
+          <p class="text-slate-700 text-base sm:text-lg">Purpose-built AI funding infrastructure eliminating red tape, guesswork, and broker fees for South African youth entrepreneurs and SMMEs.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+          <div class="reveal group bg-slate-200/60 backdrop-blur-sm rounded-2xl p-7 border border-slate-300/60 hover:border-brand-400 shadow-sm hover:shadow-elevated transition-all duration-300 flex flex-col">
+            <div class="flex items-center justify-between mb-6">
+              <div class="w-12 h-12 rounded-xl bg-brand-600 text-white flex items-center justify-center text-xl shadow-sm"><i class="fas fa-bolt"></i></div>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">01 • Matching</span>
             </div>
-            <h3>Smart Matching</h3>
-            <p>
-              Our AI analyzes your business profile to find funding
-              opportunities that perfectly match your needs and qualifications.
-            </p>
+            <h3 class="font-display font-bold text-xl text-slate-900 mb-3">AI Youth &amp; SMME Fund Matching</h3>
+            <p class="text-slate-700 text-sm leading-relaxed flex-grow">Scans 120+ South African youth grants, development finance institutions (DFIs), corporate ESD funds, and SMME growth schemes to surface exact-fit capital.</p>
+            <a href="login.html" class="mt-6 pt-4 border-t border-slate-300/60 flex items-center justify-between text-xs font-bold text-brand-700 hover:text-brand-800">
+              <span>Scan eligible funds now</span>
+              <i class="fas fa-arrow-right text-[11px]"></i>
+            </a>
           </div>
-          <div class="feature-card">
-            <div class="feature-icon">
-              <i class="fas fa-robot"></i>
+
+          <div class="reveal group bg-slate-200/60 backdrop-blur-sm rounded-2xl p-7 border border-slate-300/60 hover:border-brand-400 shadow-sm hover:shadow-elevated transition-all duration-300 flex flex-col">
+            <div class="flex items-center justify-between mb-6">
+              <div class="w-12 h-12 rounded-xl bg-brand-600 text-white flex items-center justify-center text-xl shadow-sm"><i class="fas fa-robot"></i></div>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">02 • AI Pitching</span>
             </div>
-            <h3>AI Applications</h3>
-            <p>
-              Generate professional motivation letters and project summaries
-              tailored specifically to your business and funding requirements.
-            </p>
+            <h3 class="font-display font-bold text-xl text-slate-900 mb-3">AI Motivation &amp; Pitch Builder</h3>
+            <p class="text-slate-700 text-sm leading-relaxed flex-grow">Generates tailored funding motivation letters, executive summaries, and budget breakdowns aligned directly to each funder's evaluation scorecard.</p>
+            <a href="login.html" class="mt-6 pt-4 border-t border-slate-300/60 flex items-center justify-between text-xs font-bold text-brand-700 hover:text-brand-800">
+              <span>Generate AI motivation letter</span>
+              <i class="fas fa-arrow-right text-[11px]"></i>
+            </a>
           </div>
-          <div class="feature-card">
-            <div class="feature-icon">
-              <i class="fas fa-chart-bar"></i>
+
+          <div class="reveal group bg-slate-200/60 backdrop-blur-sm rounded-2xl p-7 border border-slate-300/60 hover:border-brand-400 shadow-sm hover:shadow-elevated transition-all duration-300 flex flex-col">
+            <div class="flex items-center justify-between mb-6">
+              <div class="w-12 h-12 rounded-xl bg-brand-600 text-white flex items-center justify-center text-xl shadow-sm"><i class="fas fa-clipboard-check"></i></div>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">03 • Readiness</span>
             </div>
-            <h3>Track Progress</h3>
-            <p>
-              Monitor your application status in real-time with our intuitive
-              dashboard. No more guessing games.
-            </p>
+            <h3 class="font-display font-bold text-xl text-slate-900 mb-3">Funding Readiness &amp; Compliance Check</h3>
+            <p class="text-slate-700 text-sm leading-relaxed flex-grow">Instant CIPC, B-BBEE affidavit, tax clearance, and youth-ownership eligibility check before you apply—so you never waste time on disqualified bids.</p>
+            <a href="login.html" class="mt-6 pt-4 border-t border-slate-300/60 flex items-center justify-between text-xs font-bold text-brand-700 hover:text-brand-800">
+              <span>Run compliance check</span>
+              <i class="fas fa-arrow-right text-[11px]"></i>
+            </a>
           </div>
-          <div class="feature-card">
-            <div class="feature-icon">
-              <i class="fas fa-users"></i>
+
+          <div class="reveal group bg-slate-200/60 backdrop-blur-sm rounded-2xl p-7 border border-slate-300/60 hover:border-brand-400 shadow-sm hover:shadow-elevated transition-all duration-300 flex flex-col">
+            <div class="flex items-center justify-between mb-6">
+              <div class="w-12 h-12 rounded-xl bg-brand-600 text-white flex items-center justify-center text-xl shadow-sm"><i class="fas fa-chart-bar"></i></div>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">04 • Tracking</span>
             </div>
-            <h3>Built for SMMEs</h3>
-            <p>
-              Designed specifically for South African small businesses to
-              simplify funding and accelerate growth.
-            </p>
+            <h3 class="font-display font-bold text-xl text-slate-900 mb-3">Real-Time Application Tracker</h3>
+            <p class="text-slate-700 text-sm leading-relaxed flex-grow">Track every youth grant and SMME funding submission from AI draft to review, approval, and capital disbursement in one unified dashboard.</p>
+            <a href="login.html" class="mt-6 pt-4 border-t border-slate-300/60 flex items-center justify-between text-xs font-bold text-brand-700 hover:text-brand-800">
+              <span>View application tracker</span>
+              <i class="fas fa-arrow-right text-[11px]"></i>
+            </a>
+          </div>
+
+          <div class="reveal group bg-slate-200/60 backdrop-blur-sm rounded-2xl p-7 border border-slate-300/60 hover:border-brand-400 shadow-sm hover:shadow-elevated transition-all duration-300 flex flex-col">
+            <div class="flex items-center justify-between mb-6">
+              <div class="w-12 h-12 rounded-xl bg-brand-600 text-white flex items-center justify-center text-xl shadow-sm"><i class="fas fa-rocket"></i></div>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">05 • Youth-First</span>
+            </div>
+            <h3 class="font-display font-bold text-xl text-slate-900 mb-3">Youth-First &amp; Pre-Revenue Pathways</h3>
+            <p class="text-slate-700 text-sm leading-relaxed flex-grow">Dedicated funding tracks for young founders (18–35) starting from scratch with equipment vouchers and seed grants alongside established SMMEs scaling up.</p>
+            <a href="login.html" class="mt-6 pt-4 border-t border-slate-300/60 flex items-center justify-between text-xs font-bold text-brand-700 hover:text-brand-800">
+              <span>Explore youth seed grants</span>
+              <i class="fas fa-arrow-right text-[11px]"></i>
+            </a>
+          </div>
+
+          <div class="reveal group bg-slate-200/60 backdrop-blur-sm rounded-2xl p-7 border border-slate-300/60 hover:border-brand-400 shadow-sm hover:shadow-elevated transition-all duration-300 flex flex-col">
+            <div class="flex items-center justify-between mb-6">
+              <div class="w-12 h-12 rounded-xl bg-brand-600 text-white flex items-center justify-center text-xl shadow-sm"><i class="fas fa-shield-halved"></i></div>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">06 • Zero-Fee</span>
+            </div>
+            <h3 class="font-display font-bold text-xl text-slate-900 mb-3">Zero-Fee Direct Funder Access</h3>
+            <p class="text-slate-700 text-sm leading-relaxed flex-grow">No middlemen or hidden brokerage fees; connect directly to verified South African grants, zero-interest youth loans, and blended SMME finance.</p>
+            <a href="funders.html" class="mt-6 pt-4 border-t border-slate-300/60 flex items-center justify-between text-xs font-bold text-brand-700 hover:text-brand-800">
+              <span>Browse verified funders</span>
+              <i class="fas fa-arrow-right text-[11px]"></i>
+            </a>
           </div>
         </div>
       </div>
     </section>
 
     <!-- How It Works -->
-    <section id="how-it-works" class="section how-it-works">
-      <div class="container">
-        <h2>How It Works</h2>
-        <div class="steps">
-          <div class="step">
-            <h3>Create Profile</h3>
-            <p>Tell us about your business and funding requirements.</p>
+    <section id="how-it-works" class="py-20 lg:py-28 bg-slate-900 text-white relative overflow-hidden scroll-mt-16">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="max-w-2xl mx-auto text-center mb-16 reveal">
+          <span class="text-xs font-bold uppercase tracking-widest text-brand-400">4-Step AI Funding Workflow</span>
+          <h2 class="font-display font-extrabold text-3xl sm:text-4xl text-white mt-2 mb-4">How FundFinder Works</h2>
+          <p class="text-slate-400 text-base sm:text-lg">From profile setup to approved capital—built to get funding into the hands of young founders and SMMEs faster.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 relative">
+          <div class="hidden lg:block absolute top-10 left-16 right-16 h-0.5 bg-gradient-to-r from-brand-600/40 via-brand-500 to-brand-600/40 z-0"></div>
+
+          <div class="reveal relative z-10 bg-slate-850/90 backdrop-blur-sm rounded-2xl p-7 border border-slate-800 hover:border-brand-500/60 transition-all">
+            <div class="w-12 h-12 rounded-xl bg-brand-600 text-white font-display font-extrabold text-lg flex items-center justify-center shadow-lg shadow-brand-600/30 mb-6">01</div>
+            <h3 class="font-display font-bold text-xl text-white mb-2.5">Create Your Profile</h3>
+            <p class="text-slate-400 text-sm leading-relaxed">Enter your age bracket, venture stage, province, and capital needs in 60 seconds—whether pre-CIPC or an established SMME.</p>
           </div>
-          <div class="step">
-            <h3>AI Matching</h3>
-            <p>
-              Our intelligent system finds the best funding matches for your
-              business.
-            </p>
+
+          <div class="reveal relative z-10 bg-slate-850/90 backdrop-blur-sm rounded-2xl p-7 border border-slate-800 hover:border-brand-500/60 transition-all">
+            <div class="w-12 h-12 rounded-xl bg-slate-800 border border-brand-500/50 text-brand-400 font-display font-extrabold text-lg flex items-center justify-center mb-6">02</div>
+            <h3 class="font-display font-bold text-xl text-white mb-2.5">Get Instant AI Matches</h3>
+            <p class="text-slate-400 text-sm leading-relaxed">Our AI engine filters 120+ South African grants, equipment vouchers, and growth funds to rank opportunities you qualify for.</p>
           </div>
-          <div class="step">
-            <h3>Apply Easily</h3>
-            <p>Submit applications with AI-assisted completion.</p>
+
+          <div class="reveal relative z-10 bg-slate-850/90 backdrop-blur-sm rounded-2xl p-7 border border-slate-800 hover:border-brand-500/60 transition-all">
+            <div class="w-12 h-12 rounded-xl bg-slate-800 border border-brand-500/50 text-brand-400 font-display font-extrabold text-lg flex items-center justify-center mb-6">03</div>
+            <h3 class="font-display font-bold text-xl text-white mb-2.5">Generate AI Application</h3>
+            <p class="text-slate-400 text-sm leading-relaxed">Draft funder-ready motivation letters, executive summaries, and budget justifications in one click with our AI Co-Pilot.</p>
           </div>
-          <div class="step">
-            <h3>Track & Grow</h3>
-            <p>Monitor your application progress and receive updates.</p>
+
+          <div class="reveal relative z-10 bg-slate-850/90 backdrop-blur-sm rounded-2xl p-7 border border-slate-800 hover:border-brand-500/60 transition-all">
+            <div class="w-12 h-12 rounded-xl bg-slate-800 border border-brand-500/50 text-brand-400 font-display font-extrabold text-lg flex items-center justify-center mb-6">04</div>
+            <h3 class="font-display font-bold text-xl text-white mb-2.5">Track &amp; Receive Capital</h3>
+            <p class="text-slate-400 text-sm leading-relaxed">Submit directly to the funder, monitor your application status in real time, and deploy your approved capital to grow.</p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Partnership Section -->
-    <section class="section partnership">
-      <div class="container">
-        <h2>Our Strategic Partners</h2>
-        <div class="partnership-content">
-          <img src="imgs/ELIDZ-STP LOGO.png " style=" display: block; margin: 0
-          auto; max-width: 700px; width: 100%; padding-bottom: 2rem; alt="East
-          London IDZ Partnership" class="partnership-logo" />
-          <div class="partnership-text">
-            <p>
-              We're proud to partner with <strong>East London IDZ</strong> to
-              bring innovative funding solutions to businesses in the Eastern
-              Cape region. Together, we're working to streamline business growth
-              and development through our
-              <strong>Business Streamlined</strong> initiative.
-            </p>
-            <p>
-              This partnership enables us to offer specialized funding
-              opportunities and support services tailored to businesses
-              operating within the East London Industrial Development Zone.
-            </p>
+    <!-- Ecosystem -->
+    <section id="partners" class="py-20 lg:py-28 border-b border-slate-200/80 scroll-mt-16">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-2xl mx-auto mb-14 reveal">
+          <span class="text-xs font-bold uppercase tracking-widest text-brand-700">Verified Capital Network</span>
+          <h2 class="font-display font-extrabold text-3xl sm:text-4xl text-slate-900 mt-2 mb-4">South African Youth &amp; SMME Funding Ecosystem</h2>
+          <p class="text-slate-700 text-base">We index and structure live funding mandates across South Africa's leading youth grant bodies, development finance institutions, and corporate enterprise funds.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 reveal">
+          <div class="bg-slate-200/60 backdrop-blur-sm rounded-2xl p-6 border border-slate-300/60 shadow-sm hover:border-brand-400 hover:shadow-elevated transition-all text-center flex flex-col items-center">
+            <div class="w-14 h-14 rounded-2xl bg-brand-600 text-white flex items-center justify-center mb-4 shadow-sm">
+              <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+              </svg>
+            </div>
+            <h3 class="font-display font-bold text-base text-slate-900">Youth Development Funds</h3>
+            <p class="text-xs text-slate-600 mt-2 leading-relaxed">Non-repayable micro-grants, stock &amp; equipment vouchers, and startup seed funding for young South Africans (18–35).</p>
+          </div>
+
+          <div class="bg-slate-200/60 backdrop-blur-sm rounded-2xl p-6 border border-slate-300/60 shadow-sm hover:border-brand-400 hover:shadow-elevated transition-all text-center flex flex-col items-center">
+            <div class="w-14 h-14 rounded-2xl bg-brand-600 text-white flex items-center justify-center mb-4 shadow-sm">
+              <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
+            </div>
+            <h3 class="font-display font-bold text-base text-slate-900">SMME Development Finance</h3>
+            <p class="text-xs text-slate-600 mt-2 leading-relaxed">National DFI blended finance, working capital facilities, and township &amp; rural small business expansion grants.</p>
+          </div>
+
+          <div class="bg-slate-200/60 backdrop-blur-sm rounded-2xl p-6 border border-slate-300/60 shadow-sm hover:border-brand-400 hover:shadow-elevated transition-all text-center flex flex-col items-center">
+            <div class="w-14 h-14 rounded-2xl bg-brand-600 text-white flex items-center justify-center mb-4 shadow-sm">
+              <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </div>
+            <h3 class="font-display font-bold text-base text-slate-900">Enterprise &amp; Supplier Development</h3>
+            <p class="text-xs text-slate-600 mt-2 leading-relaxed">Corporate ESD grant pools and zero-interest supplier loans backing youth-owned and black-owned SMMEs.</p>
+          </div>
+
+          <div class="bg-slate-200/60 backdrop-blur-sm rounded-2xl p-6 border border-slate-300/60 shadow-sm hover:border-brand-400 hover:shadow-elevated transition-all text-center flex flex-col items-center">
+            <div class="w-14 h-14 rounded-2xl bg-brand-600 text-white flex items-center justify-center mb-4 shadow-sm">
+              <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+              </svg>
+            </div>
+            <h3 class="font-display font-bold text-base text-slate-900">Digital Innovation Funds</h3>
+            <p class="text-xs text-slate-600 mt-2 leading-relaxed">Tech commercialization grants, digital transformation vouchers, and early-stage seed capital for young innovators.</p>
+          </div>
+        </div>
+
+        <div class="reveal mt-12 rounded-3xl bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 p-8 sm:p-10 text-white border border-slate-800 shadow-elevated flex flex-col lg:flex-row items-center justify-between gap-6">
+          <div class="text-center lg:text-left max-w-xl">
+            <h3 class="font-display font-extrabold text-2xl sm:text-3xl text-white">Stop Searching and Start Growing with Smart AI Funding Matches.</h3>
+          </div>
+          <div class="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
+            <a href="login.html" class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold text-sm shadow-lg shadow-brand-600/25 transition-all flex items-center justify-center gap-2">
+              <i class="fas fa-bolt"></i>
+              <span>Get Started Free</span>
+            </a>
+            <a href="funders.html" class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/15 font-semibold text-sm transition-all flex items-center justify-center gap-2">
+              <i class="fas fa-search-dollar text-brand-400"></i>
+              <span>Browse Live Funds</span>
+            </a>
           </div>
         </div>
       </div>
     </section>
+  </main>
 
-    <!-- Footer -->
-    <footer id="contact">
-      <div class="container">
-        <p>&copy; 2025 FundFinder. All rights reserved.</p>
-        <p>Empowering South African SMMEs with smart funding solutions</p>
+  <!-- Footer -->
+  <footer id="contact" class="bg-slate-950 text-slate-400 pt-16 pb-12 border-t border-slate-900">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-10 pb-12 border-b border-slate-800/80">
+        <div class="md:col-span-5 space-y-4">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center text-white">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+              </svg>
+            </div>
+            <span class="font-display font-extrabold text-xl text-white">FundFinder</span>
+          </div>
+          <p class="text-sm text-slate-400 max-w-sm leading-relaxed">FundFinder uses intelligent AI to connect South African youth and SMMEs with the right funding opportunities. Stop searching and start growing with our smart matching technology.</p>
+          <div class="flex items-center gap-3 pt-2">
+            <a href="#" aria-label="LinkedIn" class="w-9 h-9 rounded-lg bg-slate-900 hover:bg-brand-600 text-slate-400 hover:text-white flex items-center justify-center transition-colors">
+              <i class="fab fa-linkedin-in text-sm"></i>
+            </a>
+            <a href="#" aria-label="Instagram" class="w-9 h-9 rounded-lg bg-slate-900 hover:bg-brand-600 text-slate-400 hover:text-white flex items-center justify-center transition-colors">
+              <i class="fab fa-instagram text-sm"></i>
+            </a>
+            <a href="mailto:funding@fundfinder.co.za" aria-label="Email" class="w-9 h-9 rounded-lg bg-slate-900 hover:bg-brand-600 text-slate-400 hover:text-white flex items-center justify-center transition-colors">
+              <i class="fas fa-envelope text-sm"></i>
+            </a>
+          </div>
+        </div>
+
+        <div class="md:col-span-4 space-y-3">
+          <h4 class="font-display font-bold text-sm uppercase tracking-wider text-white">Funding Tracks</h4>
+          <ul class="space-y-2.5 text-sm">
+            <li><a href="funders.html" class="hover:text-brand-400 transition-colors">Youth Startup Grants (18–35)</a></li>
+            <li><a href="funders.html" class="hover:text-brand-400 transition-colors">Youth Equipment &amp; Toolkit Vouchers</a></li>
+            <li><a href="funders.html" class="hover:text-brand-400 transition-colors">SMME Growth &amp; Working Capital</a></li>
+            <li><a href="funders.html" class="hover:text-brand-400 transition-colors">Funded Incubators &amp; Seed Stipends</a></li>
+          </ul>
+        </div>
+
+        <div class="md:col-span-3 space-y-3">
+          <h4 class="font-display font-bold text-sm uppercase tracking-wider text-white">Funding Tools</h4>
+          <ul class="space-y-2.5 text-sm">
+            <li><a href="login.html" class="hover:text-brand-400 transition-colors">AI Funding Eligibility Matcher</a></li>
+            <li><a href="login.html" class="hover:text-brand-400 transition-colors">AI Motivation Letter Builder</a></li>
+            <li><a href="funders.html" class="hover:text-brand-400 transition-colors">South African Funder Directory</a></li>
+            <li class="text-slate-500 text-xs pt-2"><i class="fas fa-shield-alt text-emerald-500 mr-1.5"></i> Zero-Fee Funder Access • POPIA Safe</li>
+          </ul>
+        </div>
       </div>
-    </footer>
-  </body>
+
+      <div class="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+        <p>&copy; 2026 FundFinder. Supplying AI-Matched Funding for South African Youth &amp; SMMEs.</p>
+        <p>Stop searching and start growing with smart matching technology.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ---------- DATA ----------
+    const launchpadData = {
+      youthGrants: [
+        { badge: '98% Youth Match', badgeStyle: 'bg-emerald-50 text-emerald-700 border-emerald-200', tag: '100% Grant', title: 'NYDA Youth Micro-Enterprise Grant', desc: 'Non-repayable startup capital, stock, and business tooling for South African youth entrepreneurs (ages 18–35).', metricLabel: 'Grant Range', metricValue: 'R10k – R200k', cta: 'Apply Now' },
+        { badge: '95% Youth Match', badgeStyle: 'bg-emerald-50 text-emerald-700 border-emerald-200', tag: 'Seed Capital', title: 'Youth Digital Venture & Tech Seed Fund', desc: 'Early-stage seed funding and product commercialization grants for youth-led software, digital, and innovation startups.', metricLabel: 'Seed Allocation', metricValue: 'R50k – R350k', cta: 'Apply Now' },
+        { badge: '92% Youth Match', badgeStyle: 'bg-brand-50 text-brand-700 border-brand-200', tag: 'Equipment Grant', title: 'Youth Equipment & Toolkit Voucher', desc: 'Direct equipment, machinery, laptop, and digital software vouchers enabling young founders to launch immediately.', metricLabel: 'Voucher Value', metricValue: 'R15k – R75k', cta: 'Apply Now' }
+      ],
+      smmeGrowth: [
+        { badge: '96% SMME Match', badgeStyle: 'bg-emerald-50 text-emerald-700 border-emerald-200', tag: 'Growth Finance', title: 'SEDFA SMME Expansion & Working Capital', desc: 'Flexible expansion financing and working capital support for registered South African SMMEs scaling operations.', metricLabel: 'Funding Range', metricValue: 'R100k – R1.5M', cta: 'Apply Now' },
+        { badge: '93% SMME Match', badgeStyle: 'bg-emerald-50 text-emerald-700 border-emerald-200', tag: 'Blended Finance', title: 'Township & Rural Enterprise Blended Finance', desc: 'Grant-plus-low-interest capital packages designed to accelerate township and rural small businesses nationwide.', metricLabel: 'Capital Package', metricValue: 'R50k – R750k', cta: 'Apply Now' },
+        { badge: '90% SMME Match', badgeStyle: 'bg-brand-50 text-brand-700 border-brand-200', tag: 'Tech & Green Grant', title: 'Green & Digital Transformation SMME Grant', desc: 'Co-funded grants supporting SMMEs adopting clean energy, digital systems, and modern production equipment.', metricLabel: 'Grant Limit', metricValue: 'R150k – R1M', cta: 'Apply Now' }
+      ],
+      incubators: [
+        { badge: '97% Founder Match', badgeStyle: 'bg-emerald-50 text-emerald-700 border-emerald-200', tag: 'Seed + Stipend', title: 'Youth Tech Founder Seed Accelerator', desc: '6-month venture funding track providing prototype seed capital alongside a monthly founder living stipend.', metricLabel: 'Founder Stipend + Seed', metricValue: 'R6,500/mo + Seed', cta: 'Apply Now' },
+        { badge: '94% SMME Match', badgeStyle: 'bg-emerald-50 text-emerald-700 border-emerald-200', tag: 'Readiness Grant', title: 'Women & Youth-Owned SMME Readiness Grant', desc: 'Targeted grant funding covering compliance, financial systems, and market-entry capital for women and youth founders.', metricLabel: 'Grant Support', metricValue: 'R25k – R250k', cta: 'Apply Now' },
+        { badge: '91% Youth Match', badgeStyle: 'bg-brand-50 text-brand-700 border-brand-200', tag: 'Prototype Grant', title: 'Campus & Grassroots Innovation Seed Fund', desc: 'Pre-revenue proof-of-concept grants helping young inventors turn validated prototypes into registered SMMEs.', metricLabel: 'Seed Grant', metricValue: 'R20k – R120k', cta: 'Apply Now' }
+      ]
+    };
+
+    function switchTab(tabKey) {
+      const grid = document.getElementById('launchpad-grid');
+      const tabs = document.querySelectorAll('.launchpad-tab');
+
+      tabs.forEach(btn => {
+        btn.classList.remove('bg-brand-600', 'text-white', 'shadow-sm');
+        btn.classList.add('bg-white', 'text-slate-700', 'border', 'border-slate-200');
+        const icon = btn.querySelector('i');
+        if (icon) icon.classList.add('text-brand-600');
+      });
+
+      const activeBtn = document.getElementById(`tab-${tabKey}`);
+      if (activeBtn) {
+        activeBtn.classList.remove('bg-white', 'text-slate-700', 'border', 'border-slate-200');
+        activeBtn.classList.add('bg-brand-600', 'text-white', 'shadow-sm');
+        const activeIcon = activeBtn.querySelector('i');
+        if (activeIcon) activeIcon.classList.remove('text-brand-600');
+      }
+
+      grid.style.opacity = '0.35';
+      setTimeout(() => {
+        const items = launchpadData[tabKey] || launchpadData.youthGrants;
+        grid.innerHTML = items.map(item => `
+          <div class="bg-white rounded-xl p-5 border border-slate-200/90 shadow-sm hover:border-brand-400 transition-all flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-3">
+                <span class="px-2.5 py-1 text-[11px] font-bold border rounded-md ${item.badgeStyle}">${item.badge}</span>
+                <span class="text-xs font-medium text-slate-400">${item.tag}</span>
+              </div>
+              <h3 class="font-display font-bold text-base text-slate-900">${item.title}</h3>
+              <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">${item.desc}</p>
+            </div>
+            <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+              <div>
+                <span class="text-[10px] uppercase text-slate-400 block">${item.metricLabel}</span>
+                <span class="font-display font-bold text-sm text-slate-900">${item.metricValue}</span>
+              </div>
+              <a href="login.html" class="px-3 py-1.5 rounded-lg bg-brand-50 hover:bg-brand-600 text-brand-700 hover:text-white text-xs font-semibold transition-colors">${item.cta}</a>
+            </div>
+          </div>
+        `).join('');
+        grid.style.opacity = '1';
+      }, 140);
+    }
+
+    switchTab('youthGrants');
+
+    // Mobile Menu
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const mobileMenuIcon = document.getElementById('mobile-menu-icon');
+
+    mobileMenuBtn.addEventListener('click', () => {
+      const isHidden = mobileMenu.classList.contains('hidden');
+      if (isHidden) {
+        mobileMenu.classList.remove('hidden');
+        mobileMenuIcon.classList.remove('fa-bars');
+        mobileMenuIcon.classList.add('fa-times');
+      } else {
+        closeMobileMenu();
+      }
+    });
+
+    function closeMobileMenu() {
+      mobileMenu.classList.add('hidden');
+      mobileMenuIcon.classList.remove('fa-times');
+      mobileMenuIcon.classList.add('fa-bars');
+    }
+
+    // Scroll Reveal
+    const revealElements = document.querySelectorAll('.reveal');
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('active');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+
+    revealElements.forEach(el => revealObserver.observe(el));
+  </script>
+</body>
 </html>

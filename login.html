@@ -1,1272 +1,576 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FundFinder - Login/Signup</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <style>
-      /* CSS Variables for Soft Orange Design System */
-      :root {
-        --color-white: #ffffff;
-        --color-orange: #ff8c42; /* Softer orange */
-        --color-orange-medium: #ffa366;
-        --color-orange-light: #ffc8a8;
-        --color-orange-very-light: #ffe8db;
-        --color-dark: #333333;
-        --color-gray: #666666;
-        --color-gray-light: #f5f5f5;
-        --color-gray-border: #e0e0e0;
-        --font-heading: "Archivo Black", sans-serif;
-        --font-body: "Archivo", sans-serif;
-        --border-radius-sm: 4px;
-        --border-radius-md: 8px;
-        --border-radius-lg: 12px;
-        --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
-        --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
-        --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
-        --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-      }
-
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      body {
-        font-family: var(--font-body);
-        line-height: 1.6;
-        color: var(--color-dark);
-        background: var(--color-gray-light);
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 2rem;
-      }
-
-      .container {
-        display: flex;
-        width: 100%;
-        max-width: 1200px;
-        min-height: 700px;
-        background: #fff;
-        border-radius: 16px;
-        box-shadow: var(--shadow-lg);
-        overflow: hidden;
-      }
-
-      .welcome-section {
-        flex: 1.2;
-        background: linear-gradient(
-            rgba(255, 140, 66, 0.85),
-            rgba(255, 168, 102, 0.85)
-          ),
-          url("https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D");
-        background-size: cover;
-        background-position: center;
-        color: #fff;
-        padding: 4rem 3rem;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        position: relative;
-      }
-
-      .welcome-section::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(255, 140, 66, 0.1);
-        z-index: 1;
-      }
-
-      .welcome-content {
-        position: relative;
-        z-index: 2;
-      }
-
-      .welcome-section h1 {
-        font-family: var(--font-heading);
-        font-size: 2.5rem;
-        margin-bottom: 2rem;
-        line-height: 1.3;
-      }
-
-      .welcome-section p {
-        font-size: 1.2rem;
-        line-height: 1.7;
-        margin-bottom: 1.5rem;
-        opacity: 0.95;
-      }
-
-      .features-list {
-        margin-top: 2rem;
-      }
-
-      .feature-item {
-        display: flex;
-        align-items: center;
-        margin-bottom: 1rem;
-        font-size: 1.1rem;
-      }
-
-      .feature-item i {
-        margin-right: 1rem;
-        font-size: 1.3rem;
-      }
-
-      .form-section {
-        flex: 1;
-        padding: 4rem 3rem;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        background: #fff;
-      }
-
-      .form-container {
-        width: 100%;
-        max-width: 400px;
-        margin: 0 auto;
-      }
-
-      .logo {
-        font-family: var(--font-heading);
-        font-weight: 700;
-        font-size: 2rem;
-        color: var(--color-orange);
-        margin-bottom: 2.5rem;
-        text-align: center;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-      }
-
-      .logo-dot {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        background: var(--color-orange);
-        display: inline-block;
-      }
-
-      .tabs {
-        display: flex;
-        margin-bottom: 2.5rem;
-        border-bottom: 2px solid var(--color-gray-border);
-        background: var(--color-gray-light);
-        border-radius: 10px 10px 0 0;
-        overflow: hidden;
-      }
-
-      .tab {
-        flex: 1;
-        text-align: center;
-        padding: 1.2rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: var(--transition);
-        background: transparent;
-        color: var(--color-gray);
-      }
-
-      .tab.active {
-        background: var(--color-orange);
-        color: #fff;
-      }
-
-      .form {
-        display: none;
-        animation: fadeIn 0.5s ease;
-      }
-
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FundFinder — Login / Sign Up</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#fff3e0', 100: '#ffe0b2', 200: '#ffcc80', 300: '#ffb74d',
+              400: '#ffa726', 500: '#ff6d00', 600: '#e65100', 700: '#bf360c',
+              800: '#9a3412', 900: '#7c2d12',
+            },
+            slate: { 850: '#151e32', 900: '#0f172a', 950: '#090d16' }
+          },
+          boxShadow: {
+            'glass': '0 4px 30px rgba(15, 23, 42, 0.05)',
+            'elevated': '0 20px 40px -15px rgba(15, 23, 42, 0.09)',
+          }
         }
       }
+    };
+  </script>
+  <style>
+    .form { display: none; }
+    .form.active { display: block; animation: fadeIn 0.35s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .message { display: none; }
+    .message.success { display: block; }
+    .message.error { display: block; }
+    .loading { display: none; }
+    .loading.active { display: block; }
+    .spinner {
+      border: 3px solid rgba(230, 81, 0, 0.15);
+      border-left-color: #e65100;
+      border-radius: 50%;
+      width: 32px; height: 32px;
+      animation: spin 0.9s linear infinite;
+      margin: 0 auto 0.75rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .modal { display: none; }
+    .modal.active { display: flex; }
+    .recovery-step { display: none; }
+    .recovery-step.active { display: block; animation: fadeIn 0.35s ease; }
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.96) translateY(-12px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .modal-active { animation: modalFadeIn 0.25s ease; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans antialiased selection:bg-brand-600 selection:text-white min-h-screen flex items-center justify-center p-4 sm:p-6">
 
-      .form.active {
-        display: block;
-      }
+  <div class="w-full max-w-6xl bg-white rounded-3xl shadow-elevated border border-slate-200/80 overflow-hidden grid grid-cols-1 lg:grid-cols-2">
 
-      .form h2 {
-        margin-bottom: 2rem;
-        color: var(--color-dark);
-        font-size: 1.8rem;
-        text-align: center;
-        font-family: var(--font-heading);
-      }
+    <!-- Welcome / Brand Panel (clean slate, no orange glows) -->
+    <div class="bg-slate-900 text-white p-10 sm:p-12 flex flex-col justify-center">
+      <div>
+        <a href="index.html" class="inline-flex items-center gap-2.5 mb-10 group">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-600 to-brand-500 flex items-center justify-center text-white shadow-lg shadow-brand-600/30 group-hover:scale-105 transition-transform">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+            </svg>
+          </div>
+          <div class="flex flex-col">
+            <span class="font-display font-extrabold text-xl tracking-tight text-white">FundFinder</span>
+            <span class="text-[10px] uppercase tracking-widest font-bold text-brand-400 -mt-0.5">Youth &amp; SMME Funding</span>
+          </div>
+        </a>
 
-      .form-group {
-        margin-bottom: 1.8rem;
-      }
+        <h1 class="font-display font-extrabold text-3xl sm:text-4xl leading-tight mb-5">
+          Find your perfect <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-brand-300">funding match</span>.
+        </h1>
+        <p class="text-slate-300 text-base leading-relaxed mb-8">
+          Join South African youth and SMMEs using intelligent AI to discover grants, seed capital and growth finance — and track every application in one place.
+        </p>
 
-      .form-group label {
-        display: block;
-        margin-bottom: 0.7rem;
-        font-weight: 600;
-        color: var(--color-dark);
-        font-size: 1rem;
-      }
+        <ul class="space-y-3 text-sm">
+          <li class="flex items-center gap-3 text-slate-200">
+            <span class="w-7 h-7 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-brand-400"><i class="fas fa-bolt text-xs"></i></span>
+            AI-powered fund matching
+          </li>
+          <li class="flex items-center gap-3 text-slate-200">
+            <span class="w-7 h-7 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-brand-400"><i class="fas fa-robot text-xs"></i></span>
+            AI motivation &amp; pitch builder
+          </li>
+          <li class="flex items-center gap-3 text-slate-200">
+            <span class="w-7 h-7 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-brand-400"><i class="fas fa-chart-line text-xs"></i></span>
+            Real-time application tracking
+          </li>
+          <li class="flex items-center gap-3 text-slate-200">
+            <span class="w-7 h-7 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-brand-400"><i class="fas fa-shield-halved text-xs"></i></span>
+            POPIA-compliant &amp; zero-fee access
+          </li>
+        </ul>
+      </div>
+    </div>
 
-      .form-group input,
-      .form-group select {
-        width: 100%;
-        padding: 1rem 1.2rem;
-        border: 2px solid var(--color-gray-border);
-        border-radius: var(--border-radius-md);
-        font-size: 1rem;
-        transition: var(--transition);
-        background: var(--color-gray-light);
-        font-family: var(--font-body);
-      }
+    <!-- Auth Panel -->
+    <div class="p-8 sm:p-10 lg:p-12 flex flex-col justify-center bg-white">
+      <div class="w-full max-w-md mx-auto">
 
-      .form-group input:focus,
-      .form-group select:focus {
-        border-color: var(--color-orange);
-        background: #fff;
-        outline: none;
-        box-shadow: 0 0 0 3px rgba(255, 140, 66, 0.1);
-      }
+        <!-- Tabs -->
+        <div class="flex mb-8 bg-slate-100 rounded-xl p-1">
+          <button type="button" class="tab flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all bg-brand-600 text-white shadow-sm" data-tab="login" id="tab-login">Login</button>
+          <button type="button" class="tab flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all text-slate-600 hover:text-slate-900" data-tab="signup" id="tab-signup">Sign Up</button>
+        </div>
 
-      .form-group input.error {
-        border-color: #dc3545;
-      }
+        <!-- Login Form -->
+        <div class="form active" id="login-form">
+          <h2 class="font-display font-extrabold text-2xl text-slate-900 mb-1">Welcome back</h2>
+          <p class="text-sm text-slate-500 mb-6">Sign in to track your funding matches and applications.</p>
 
-      .form-group input.success {
-        border-color: #28a745;
-      }
-
-      .role-selection {
-        display: flex;
-        gap: 1rem;
-        margin-bottom: 2rem;
-      }
-
-      .role-option {
-        flex: 1;
-        text-align: center;
-        padding: 1.5rem 1rem;
-        border: 2px solid var(--color-gray-border);
-        border-radius: var(--border-radius-md);
-        cursor: pointer;
-        transition: var(--transition);
-        background: var(--color-gray-light);
-      }
-
-      .role-option:hover {
-        border-color: var(--color-orange);
-        transform: translateY(-2px);
-      }
-
-      .role-option.selected {
-        border-color: var(--color-orange);
-        background-color: var(--color-orange-very-light);
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(255, 140, 66, 0.1);
-      }
-
-      .role-option i {
-        font-size: 2rem;
-        margin-bottom: 0.8rem;
-        display: block;
-      }
-
-      .role-option span {
-        display: block;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-        color: var(--color-dark);
-      }
-
-      .role-option small {
-        color: var(--color-gray);
-        font-size: 0.85rem;
-      }
-
-      .btn {
-        display: block;
-        width: 100%;
-        padding: 1.2rem;
-        background: var(--color-orange);
-        color: #fff;
-        border: none;
-        border-radius: var(--border-radius-md);
-        font-size: 1.1rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: var(--transition);
-        margin-top: 1rem;
-        font-family: var(--font-body);
-      }
-
-      .btn:hover {
-        background: var(--color-orange-medium);
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(255, 140, 66, 0.3);
-      }
-
-      .btn:active {
-        transform: translateY(0);
-      }
-
-      .btn-secondary {
-        background: var(--color-gray);
-      }
-
-      .btn-secondary:hover {
-        background: #5a6268;
-      }
-
-      .btn-outline {
-        background: transparent;
-        border: 2px solid var(--color-orange);
-        color: var(--color-orange);
-      }
-
-      .btn-outline:hover {
-        background: var(--color-orange);
-        color: #fff;
-      }
-
-      .message {
-        margin-top: 1.5rem;
-        padding: 1rem;
-        border-radius: var(--border-radius-md);
-        text-align: center;
-        font-weight: 500;
-        display: none;
-      }
-
-      .message.success {
-        background: #e6f7ee;
-        color: #0a7b3e;
-        border: 1px solid #a3e9c0;
-        display: block;
-      }
-
-      .message.error {
-        background: #fde8e8;
-        color: #c53030;
-        border: 1px solid #feb2b2;
-        display: block;
-      }
-
-      .loading {
-        display: none;
-        text-align: center;
-        margin-top: 1.5rem;
-        padding: 1.5rem;
-      }
-
-      .loading.active {
-        display: block;
-      }
-
-      .spinner {
-        border: 4px solid rgba(0, 0, 0, 0.1);
-        border-left-color: var(--color-orange);
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        animation: spin 1s linear infinite;
-        margin: 0 auto 1rem;
-      }
-
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
-        }
-      }
-
-      .password-requirements {
-        font-size: 0.85rem;
-        color: var(--color-gray);
-        margin-top: 0.5rem;
-      }
-
-      .forgot-password {
-        text-align: center;
-        margin-top: 1rem;
-      }
-
-      .forgot-password a {
-        color: var(--color-orange);
-        text-decoration: none;
-        font-weight: 500;
-        cursor: pointer;
-      }
-
-      .forgot-password a:hover {
-        text-decoration: underline;
-      }
-
-      .step-indicator {
-        display: flex;
-        justify-content: center;
-        margin-bottom: 2rem;
-        gap: 1rem;
-      }
-
-      .step {
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        background: var(--color-gray-border);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 600;
-        font-size: 0.9rem;
-        transition: var(--transition);
-      }
-
-      .step.active {
-        background: var(--color-orange);
-        color: #fff;
-      }
-
-      .step.completed {
-        background: #28a745;
-        color: #fff;
-      }
-
-      /* Modal Styles */
-      .modal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 1000;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .modal.active {
-        display: flex;
-      }
-
-      .modal-content {
-        background: #fff;
-        padding: 2.5rem;
-        border-radius: var(--border-radius-lg);
-        box-shadow: var(--shadow-lg);
-        width: 90%;
-        max-width: 450px;
-        animation: modalFadeIn 0.3s ease;
-      }
-
-      @keyframes modalFadeIn {
-        from {
-          opacity: 0;
-          transform: scale(0.9) translateY(-20px);
-        }
-        to {
-          opacity: 1;
-          transform: scale(1) translateY(0);
-        }
-      }
-
-      .modal-header {
-        margin-bottom: 1.5rem;
-        text-align: center;
-      }
-
-      .modal-header h3 {
-        font-size: 1.5rem;
-        color: var(--color-dark);
-        margin-bottom: 0.5rem;
-        font-family: var(--font-heading);
-      }
-
-      .modal-header p {
-        color: var(--color-gray);
-        font-size: 0.95rem;
-      }
-
-      .modal-actions {
-        display: flex;
-        gap: 1rem;
-        margin-top: 2rem;
-      }
-
-      .modal-actions .btn {
-        flex: 1;
-        margin-top: 0;
-      }
-
-      .recovery-step {
-        display: none;
-      }
-
-      .recovery-step.active {
-        display: block;
-        animation: fadeIn 0.5s ease;
-      }
-
-      @media (max-width: 968px) {
-        .container {
-          flex-direction: column;
-          max-width: 600px;
-          min-height: auto;
-        }
-
-        .welcome-section {
-          padding: 3rem 2rem;
-        }
-
-        .form-section {
-          padding: 3rem 2rem;
-        }
-      }
-
-      @media (max-width: 480px) {
-        body {
-          padding: 1rem;
-        }
-
-        .container {
-          border-radius: 12px;
-        }
-
-        .welcome-section h1 {
-          font-size: 2rem;
-        }
-
-        .role-selection {
-          flex-direction: column;
-        }
-
-        .modal-content {
-          padding: 2rem 1.5rem;
-          margin: 1rem;
-        }
-
-        .modal-actions {
-          flex-direction: column;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <!-- Welcome Section -->
-      <div class="welcome-section">
-        <div class="welcome-content">
-          <h1>Find the Perfect Funding Match for Your Business</h1>
-          <p>
-            Join thousands of South African SMMEs who have successfully secured
-            funding through our AI-powered platform.
-          </p>
-          <p>
-            Whether you're an entrepreneur seeking capital or a funder looking
-            to support promising businesses, FundFinder creates the perfect
-            connections.
-          </p>
-
-          <div class="features-list">
-            <div class="feature-item">
-              <i>🚀</i>
-              <span>AI-Powered Matching</span>
+          <form id="loginForm" class="space-y-4">
+            <div>
+              <label for="login-email" class="block text-xs font-semibold text-slate-700 mb-1.5">Email address</label>
+              <input type="email" id="login-email" placeholder="you@example.co.za" required
+                class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100 transition" />
             </div>
-            <div class="feature-item">
-              <i>⚡</i>
-              <span>Quick Application Process</span>
+            <div>
+              <label for="login-password" class="block text-xs font-semibold text-slate-700 mb-1.5">Password</label>
+              <input type="password" id="login-password" placeholder="Enter your password" required
+                class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100 transition" />
             </div>
-            <div class="feature-item">
-              <i>📊</i>
-              <span>Real-time Status Tracking</span>
+            <button type="submit" class="w-full py-3.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold text-sm shadow-md shadow-brand-600/25 transition-all flex items-center justify-center gap-2">
+              <i class="fas fa-arrow-right-to-bracket text-xs"></i>
+              Login to Your Account
+            </button>
+            <div class="text-center pt-2">
+              <a id="forgot-password-link" class="text-xs font-semibold text-brand-600 hover:text-brand-700 cursor-pointer">Forgot your password?</a>
             </div>
-            <div class="feature-item">
-              <i>🔒</i>
-              <span>Secure & Confidential</span>
-            </div>
+          </form>
+          <div class="message mt-4 px-4 py-3 rounded-xl text-sm font-medium text-center" id="login-message"></div>
+          <div class="loading mt-4 text-center" id="login-loading">
+            <div class="spinner"></div>
+            <p class="text-xs text-slate-500">Logging you in...</p>
           </div>
         </div>
-      </div>
 
-      <!-- Form Section -->
-      <div class="form-section">
-        <div class="form-container">
-          <div class="logo">
-            <span>FundFinder</span>
-            <span class="logo-dot"></span>
-          </div>
+        <!-- Signup Form -->
+        <div class="form" id="signup-form">
+          <h2 class="font-display font-extrabold text-2xl text-slate-900 mb-1">Create your account</h2>
+          <p class="text-sm text-slate-500 mb-6">Start matching with South African funders in minutes.</p>
 
-          <!-- Tabs for Login/Signup -->
-          <div class="tabs">
-            <div class="tab active" data-tab="login">Login</div>
-            <div class="tab" data-tab="signup">Sign Up</div>
-          </div>
-
-          <!-- Login Form -->
-          <div class="form active" id="login-form">
-            <h2>Welcome Back</h2>
-            <form id="loginForm">
-              <div class="form-group">
-                <label for="login-email">Email Address</label>
-                <input
-                  type="email"
-                  id="login-email"
-                  placeholder="Enter your email"
-                  required
-                />
-              </div>
-              <div class="form-group">
-                <label for="login-password">Password</label>
-                <input
-                  type="password"
-                  id="login-password"
-                  placeholder="Enter your password"
-                  required
-                />
-              </div>
-              <button type="submit" class="btn">Login to Your Account</button>
-              <div class="forgot-password">
-                <a id="forgot-password-link">Forgot your password?</a>
-              </div>
-            </form>
-            <div class="message" id="login-message"></div>
-            <div class="loading" id="login-loading">
-              <div class="spinner"></div>
-              <p>Logging you in...</p>
+          <form id="signupForm" class="space-y-4">
+            <div>
+              <label for="signup-email" class="block text-xs font-semibold text-slate-700 mb-1.5">Email address</label>
+              <input type="email" id="signup-email" placeholder="you@example.co.za" required
+                class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100 transition" />
             </div>
-          </div>
-
-          <!-- Signup Form -->
-          <div class="form" id="signup-form">
-            <h2>Create Your Account</h2>
-            <form id="signupForm">
-              <div class="form-group">
-                <label for="signup-email">Email Address</label>
-                <input
-                  type="email"
-                  id="signup-email"
-                  placeholder="Enter your email"
-                  required
-                />
-              </div>
-              <div class="form-group">
-                <label for="signup-password">Password</label>
-                <input
-                  type="password"
-                  id="signup-password"
-                  placeholder="Create a password"
-                  required
-                  minlength="6"
-                />
-                <div class="password-requirements">Minimum 6 characters</div>
-              </div>
-              <div class="form-group">
-                <label>I am a:</label>
-                <div class="role-selection">
-                  <div class="role-option" data-role="SMME">
-                    <i>👨‍💼</i>
-                    <span>SMME</span>
-                    <small>Looking for funding</small>
-                  </div>
-                  <div class="role-option" data-role="FUNDER">
-                    <i>🏢</i>
-                    <span>Funder</span>
-                    <small>Providing funding</small>
-                  </div>
-                  <div class="role-option" data-role="ADMIN">
-                    <i>⚙️</i>
-                    <span>Admin</span>
-                    <small>System administrator</small>
-                  </div>
+            <div>
+              <label for="signup-password" class="block text-xs font-semibold text-slate-700 mb-1.5">Password</label>
+              <input type="password" id="signup-password" placeholder="Create a password" required minlength="6"
+                class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100 transition" />
+              <div class="text-[11px] text-slate-400 mt-1">Minimum 6 characters</div>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-2">I am a:</label>
+              <div class="grid grid-cols-3 gap-2">
+                <div class="role-option text-center p-3 rounded-xl border-2 border-slate-200 bg-slate-50 cursor-pointer hover:border-brand-400 transition-all" data-role="SMME">
+                  <div class="text-xl mb-1">👨‍💼</div>
+                  <div class="text-xs font-bold text-slate-800">SMME</div>
+                  <div class="text-[10px] text-slate-500">Seeking funds</div>
                 </div>
-                <input type="hidden" id="user-role" required />
+                <div class="role-option text-center p-3 rounded-xl border-2 border-slate-200 bg-slate-50 cursor-pointer hover:border-brand-400 transition-all" data-role="FUNDER">
+                  <div class="text-xl mb-1">🏢</div>
+                  <div class="text-xs font-bold text-slate-800">Funder</div>
+                  <div class="text-[10px] text-slate-500">Providing funds</div>
+                </div>
+                <div class="role-option text-center p-3 rounded-xl border-2 border-slate-200 bg-slate-50 cursor-pointer hover:border-brand-400 transition-all" data-role="ADMIN">
+                  <div class="text-xl mb-1">⚙️</div>
+                  <div class="text-xs font-bold text-slate-800">Admin</div>
+                  <div class="text-[10px] text-slate-500">System access</div>
+                </div>
               </div>
-              <button type="submit" class="btn">Create Account</button>
-            </form>
-            <div class="message" id="signup-message"></div>
-            <div class="loading" id="signup-loading">
-              <div class="spinner"></div>
-              <p>Creating your account...</p>
+              <input type="hidden" id="user-role" required />
             </div>
+            <button type="submit" class="w-full py-3.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold text-sm shadow-md shadow-brand-600/25 transition-all flex items-center justify-center gap-2">
+              <i class="fas fa-user-plus text-xs"></i>
+              Create Account
+            </button>
+          </form>
+          <div class="message mt-4 px-4 py-3 rounded-xl text-sm font-medium text-center" id="signup-message"></div>
+          <div class="loading mt-4 text-center" id="signup-loading">
+            <div class="spinner"></div>
+            <p class="text-xs text-slate-500">Creating your account...</p>
           </div>
         </div>
+
       </div>
     </div>
+  </div>
 
-    <!-- Password Recovery Modal -->
-    <div class="modal" id="password-recovery-modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>Reset Your Password</h3>
-          <p>Enter your email and create a new password</p>
-        </div>
+  <!-- Password Recovery Modal -->
+  <div class="modal fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 items-center justify-center p-4" id="password-recovery-modal">
+    <div class="modal-active bg-white rounded-2xl w-full max-w-md p-6 sm:p-8 shadow-2xl border border-slate-200 relative max-h-[90vh] overflow-y-auto">
+      <button type="button" onclick="document.getElementById('cancel-recovery').click()" aria-label="Close" class="absolute top-4 right-4 w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors">
+        <i class="fas fa-times text-sm"></i>
+      </button>
 
-        <!-- Step Indicator -->
-        <div class="step-indicator">
-          <div class="step active" id="step-1">1</div>
-          <div class="step" id="step-2">2</div>
-        </div>
+      <div class="mb-5">
+        <h3 class="font-display font-extrabold text-xl text-slate-900 mb-1">Reset your password</h3>
+        <p class="text-xs text-slate-500">Enter your email and create a new password.</p>
+      </div>
 
-        <!-- Step 1: Email Verification -->
-        <div class="recovery-step active" id="step-1-form">
-          <form id="email-verification-form">
-            <div class="form-group">
-              <label for="recovery-email">Email Address</label>
-              <input
-                type="email"
-                id="recovery-email"
-                placeholder="Enter your email"
-                required
-              />
-            </div>
-            <div class="modal-actions">
-              <button
-                type="button"
-                class="btn btn-secondary"
-                id="cancel-recovery"
-              >
-                Cancel
-              </button>
-              <button type="submit" class="btn">Continue</button>
-            </div>
-          </form>
-        </div>
+      <!-- Step Indicator -->
+      <div class="flex items-center justify-center gap-3 mb-6">
+        <div class="step w-8 h-8 rounded-full bg-brand-600 text-white flex items-center justify-center text-xs font-bold" id="step-1">1</div>
+        <div class="w-8 h-px bg-slate-200"></div>
+        <div class="step w-8 h-8 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-xs font-bold" id="step-2">2</div>
+      </div>
 
-        <!-- Step 2: New Password -->
-        <div class="recovery-step" id="step-2-form">
-          <form id="new-password-form">
-            <div class="form-group">
-              <label for="new-password">New Password</label>
-              <input
-                type="password"
-                id="new-password"
-                placeholder="Enter new password"
-                required
-                minlength="6"
-              />
-              <div class="password-requirements">Minimum 6 characters</div>
-            </div>
-            <div class="form-group">
-              <label for="confirm-password">Confirm Password</label>
-              <input
-                type="password"
-                id="confirm-password"
-                placeholder="Confirm new password"
-                required
-                minlength="6"
-              />
-            </div>
-            <div class="modal-actions">
-              <button type="button" class="btn btn-outline" id="back-to-email">
-                Back
-              </button>
-              <button type="submit" class="btn">Reset Password</button>
-            </div>
-          </form>
-        </div>
+      <!-- Step 1 -->
+      <div class="recovery-step active" id="step-1-form">
+        <form id="email-verification-form" class="space-y-4">
+          <div>
+            <label for="recovery-email" class="block text-xs font-semibold text-slate-700 mb-1.5">Email address</label>
+            <input type="email" id="recovery-email" placeholder="you@example.co.za" required
+              class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100 transition" />
+          </div>
+          <div class="flex gap-2.5 pt-2">
+            <button type="button" class="flex-1 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm transition" id="cancel-recovery">Cancel</button>
+            <button type="submit" class="flex-1 py-3 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold text-sm shadow-sm transition">Continue</button>
+          </div>
+        </form>
+      </div>
 
-        <div class="message" id="recovery-message"></div>
-        <div class="loading" id="recovery-loading">
-          <div class="spinner"></div>
-          <p id="recovery-loading-text">Processing...</p>
-        </div>
+      <!-- Step 2 -->
+      <div class="recovery-step" id="step-2-form">
+        <form id="new-password-form" class="space-y-4">
+          <div>
+            <label for="new-password" class="block text-xs font-semibold text-slate-700 mb-1.5">New password</label>
+            <input type="password" id="new-password" placeholder="Enter new password" required minlength="6"
+              class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100 transition" />
+            <div class="text-[11px] text-slate-400 mt-1">Minimum 6 characters</div>
+          </div>
+          <div>
+            <label for="confirm-password" class="block text-xs font-semibold text-slate-700 mb-1.5">Confirm password</label>
+            <input type="password" id="confirm-password" placeholder="Confirm new password" required minlength="6"
+              class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100 transition" />
+          </div>
+          <div class="flex gap-2.5 pt-2">
+            <button type="button" class="flex-1 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm transition" id="back-to-email">Back</button>
+            <button type="submit" class="flex-1 py-3 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold text-sm shadow-sm transition">Reset Password</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="message mt-4 px-4 py-3 rounded-xl text-sm font-medium text-center" id="recovery-message"></div>
+      <div class="loading mt-4 text-center" id="recovery-loading">
+        <div class="spinner"></div>
+        <p class="text-xs text-slate-500" id="recovery-loading-text">Processing...</p>
       </div>
     </div>
+  </div>
 
-    <script>
-      // Supabase configuration
-      const SUPABASE_URL = "https://ovvvwbtexnbxzacizokr.supabase.co";
-      const SUPABASE_ANON_KEY =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dnZ3YnRleG5ieHphY2l6b2tyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1ODQ5OTEsImV4cCI6MjA3OTE2MDk5MX0.Ii21cw1Iyops8Zo784P-25NKz2m-TCyJ2zWwI4V1kcE";
+  <script>
+    // ============================================================
+    // ⚠️ DO NOT CHANGE — SUPABASE CONFIG / BACKEND CONTRACT
+    // ============================================================
+    const SUPABASE_URL = "https://ovvvwbtexnbxzacizokr.supabase.co";
+    const SUPABASE_ANON_KEY =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dnZ3YnRleG5ieHphY2l6b2tyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1ODQ5OTEsImV4cCI6MjA3OTE2MDk5MX0.Ii21cw1Iyops8Zo784P-25NKz2m-TCyJ2zWwI4V1kcE";
 
-      // ✅ DO NOT name this `supabase`
-      const supabaseClient = window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_ANON_KEY
-      );
+    const supabaseClient = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY
+    );
+    // ============================================================
 
-      // DOM elements
-      const loginTab = document.querySelector('[data-tab="login"]');
-      const signupTab = document.querySelector('[data-tab="signup"]');
-      const loginForm = document.getElementById("login-form");
-      const signupForm = document.getElementById("signup-form");
-      const loginFormElement = document.getElementById("loginForm");
-      const signupFormElement = document.getElementById("signupForm");
-      const roleOptions = document.querySelectorAll(".role-option");
-      const userRoleInput = document.getElementById("user-role");
-      const loginMessage = document.getElementById("login-message");
-      const signupMessage = document.getElementById("signup-message");
-      const loginLoading = document.getElementById("login-loading");
-      const signupLoading = document.getElementById("signup-loading");
+    // DOM elements (IDs unchanged — backend contract)
+    const loginTab = document.querySelector('[data-tab="login"]');
+    const signupTab = document.querySelector('[data-tab="signup"]');
+    const loginForm = document.getElementById("login-form");
+    const signupForm = document.getElementById("signup-form");
+    const loginFormElement = document.getElementById("loginForm");
+    const signupFormElement = document.getElementById("signupForm");
+    const roleOptions = document.querySelectorAll(".role-option");
+    const userRoleInput = document.getElementById("user-role");
+    const loginMessage = document.getElementById("login-message");
+    const signupMessage = document.getElementById("signup-message");
+    const loginLoading = document.getElementById("login-loading");
+    const signupLoading = document.getElementById("signup-loading");
 
-      // Password recovery elements
-      const forgotPasswordLink = document.getElementById(
-        "forgot-password-link"
-      );
-      const passwordRecoveryModal = document.getElementById(
-        "password-recovery-modal"
-      );
-      const cancelRecoveryBtn = document.getElementById("cancel-recovery");
-      const backToEmailBtn = document.getElementById("back-to-email");
-      const recoveryMessage = document.getElementById("recovery-message");
-      const recoveryLoading = document.getElementById("recovery-loading");
-      const recoveryLoadingText = document.getElementById(
-        "recovery-loading-text"
-      );
+    const forgotPasswordLink = document.getElementById("forgot-password-link");
+    const passwordRecoveryModal = document.getElementById("password-recovery-modal");
+    const cancelRecoveryBtn = document.getElementById("cancel-recovery");
+    const backToEmailBtn = document.getElementById("back-to-email");
+    const recoveryMessage = document.getElementById("recovery-message");
+    const recoveryLoading = document.getElementById("recovery-loading");
+    const recoveryLoadingText = document.getElementById("recovery-loading-text");
 
-      // Recovery steps
-      const step1Form = document.getElementById("step-1-form");
-      const step2Form = document.getElementById("step-2-form");
-      const step1Indicator = document.getElementById("step-1");
-      const step2Indicator = document.getElementById("step-2");
-      const emailVerificationForm = document.getElementById(
-        "email-verification-form"
-      );
-      const newPasswordForm = document.getElementById("new-password-form");
+    const step1Form = document.getElementById("step-1-form");
+    const step2Form = document.getElementById("step-2-form");
+    const step1Indicator = document.getElementById("step-1");
+    const step2Indicator = document.getElementById("step-2");
+    const emailVerificationForm = document.getElementById("email-verification-form");
+    const newPasswordForm = document.getElementById("new-password-form");
 
-      // Store recovery email
-      let recoveryEmail = "";
+    let recoveryEmail = "";
 
-      // Tab switching
-      loginTab.addEventListener("click", () => {
-        loginTab.classList.add("active");
-        signupTab.classList.remove("active");
-        loginForm.classList.add("active");
-        signupForm.classList.remove("active");
-        clearMessages();
+    // Tab switching — also toggle Tailwind active styles
+    function setActiveTab(which) {
+      const activeCls = ['bg-brand-600', 'text-white', 'shadow-sm'];
+      const inactiveCls = ['text-slate-600', 'hover:text-slate-900'];
+      [loginTab, signupTab].forEach(t => {
+        t.classList.remove(...activeCls, ...inactiveCls);
       });
+      if (which === 'login') {
+        loginTab.classList.add(...activeCls);
+        signupTab.classList.add(...inactiveCls);
+        loginForm.classList.add('active');
+        signupForm.classList.remove('active');
+      } else {
+        signupTab.classList.add(...activeCls);
+        loginTab.classList.add(...inactiveCls);
+        signupForm.classList.add('active');
+        loginForm.classList.remove('active');
+      }
+      clearMessages();
+    }
 
-      signupTab.addEventListener("click", () => {
-        signupTab.classList.add("active");
-        loginTab.classList.remove("active");
-        signupForm.classList.add("active");
-        loginForm.classList.remove("active");
-        clearMessages();
-      });
+    loginTab.addEventListener("click", () => setActiveTab('login'));
+    signupTab.addEventListener("click", () => setActiveTab('signup'));
 
-      // Role selection
-      roleOptions.forEach((option) => {
-        option.addEventListener("click", () => {
-          roleOptions.forEach((opt) => opt.classList.remove("selected"));
-          option.classList.add("selected");
-          userRoleInput.value = option.getAttribute("data-role");
+    // Role selection — Tailwind active styles
+    roleOptions.forEach((option) => {
+      option.addEventListener("click", () => {
+        roleOptions.forEach((opt) => {
+          opt.classList.remove("selected", "border-brand-500", "bg-brand-50", "shadow-md");
+          opt.classList.add("border-slate-200", "bg-slate-50");
         });
+        option.classList.remove("border-slate-200", "bg-slate-50");
+        option.classList.add("selected", "border-brand-500", "bg-brand-50", "shadow-md");
+        userRoleInput.value = option.getAttribute("data-role");
       });
+    });
 
-      // Password recovery modal
-      forgotPasswordLink.addEventListener("click", () => {
-        passwordRecoveryModal.classList.add("active");
-        resetRecoveryForm();
-        clearMessages();
-      });
+    // Password recovery modal
+    forgotPasswordLink.addEventListener("click", () => {
+      passwordRecoveryModal.classList.add("active");
+      resetRecoveryForm();
+      clearMessages();
+    });
 
-      cancelRecoveryBtn.addEventListener("click", () => {
-        closeRecoveryModal();
-      });
+    cancelRecoveryBtn.addEventListener("click", () => closeRecoveryModal());
+    backToEmailBtn.addEventListener("click", () => goToStep(1));
 
-      backToEmailBtn.addEventListener("click", () => {
-        goToStep(1);
-      });
+    passwordRecoveryModal.addEventListener("click", (e) => {
+      if (e.target === passwordRecoveryModal) closeRecoveryModal();
+    });
 
-      // Close modal when clicking outside
-      passwordRecoveryModal.addEventListener("click", (e) => {
-        if (e.target === passwordRecoveryModal) {
+    // Step 1
+    emailVerificationForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("recovery-email").value;
+      if (!email) { showMessage(recoveryMessage, "Please enter your email address", "error"); return; }
+
+      recoveryLoading.classList.add("active");
+      recoveryLoadingText.textContent = "Checking email...";
+      clearMessages();
+
+      try {
+        const { data: userData, error: userError } = await supabaseClient
+          .from("users").select("*").eq("email", email).single();
+        if (userError || !userData) throw new Error("No account found with this email address");
+
+        recoveryEmail = email;
+        goToStep(2);
+        showMessage(recoveryMessage, "Email verified! Please create a new password.", "success");
+      } catch (error) {
+        showMessage(recoveryMessage, error.message, "error");
+      } finally {
+        recoveryLoading.classList.remove("active");
+      }
+    });
+
+    // Step 2
+    newPasswordForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const newPassword = document.getElementById("new-password").value;
+      const confirmPassword = document.getElementById("confirm-password").value;
+
+      if (!newPassword || !confirmPassword) { showMessage(recoveryMessage, "Please fill in both password fields", "error"); return; }
+      if (newPassword.length < 6) { showMessage(recoveryMessage, "Password must be at least 6 characters long", "error"); return; }
+      if (newPassword !== confirmPassword) { showMessage(recoveryMessage, "Passwords do not match", "error"); return; }
+
+      recoveryLoading.classList.add("active");
+      recoveryLoadingText.textContent = "Updating password...";
+      clearMessages();
+
+      try {
+        const { error: updateError } = await supabaseClient
+          .from("users").update({ password: newPassword }).eq("email", recoveryEmail);
+        if (updateError) throw updateError;
+
+        showMessage(recoveryMessage, "Password reset successful! You can now login with your new password.", "success");
+        setTimeout(() => {
           closeRecoveryModal();
-        }
+          document.getElementById("login-email").value = recoveryEmail;
+          setActiveTab('login');
+        }, 3000);
+      } catch (error) {
+        console.error("Password recovery error:", error);
+        showMessage(recoveryMessage, "Error updating password. Please try again.", "error");
+      } finally {
+        recoveryLoading.classList.remove("active");
+      }
+    });
+
+    function goToStep(stepNumber) {
+      step1Form.classList.remove("active");
+      step2Form.classList.remove("active");
+      step1Indicator.classList.remove("bg-brand-600", "bg-emerald-500", "text-white");
+      step1Indicator.classList.add("bg-slate-200", "text-slate-500");
+      step2Indicator.classList.remove("bg-brand-600", "bg-emerald-500", "text-white");
+      step2Indicator.classList.add("bg-slate-200", "text-slate-500");
+
+      if (stepNumber === 1) {
+        step1Form.classList.add("active");
+        step1Indicator.classList.remove("bg-slate-200", "text-slate-500");
+        step1Indicator.classList.add("bg-brand-600", "text-white");
+      } else if (stepNumber === 2) {
+        step2Form.classList.add("active");
+        step1Indicator.classList.remove("bg-slate-200", "text-slate-500");
+        step1Indicator.classList.add("bg-emerald-500", "text-white");
+        step2Indicator.classList.remove("bg-slate-200", "text-slate-500");
+        step2Indicator.classList.add("bg-brand-600", "text-white");
+      }
+    }
+
+    function resetRecoveryForm() {
+      emailVerificationForm.reset();
+      newPasswordForm.reset();
+      recoveryEmail = "";
+      goToStep(1);
+    }
+
+    function closeRecoveryModal() {
+      passwordRecoveryModal.classList.remove("active");
+      resetRecoveryForm();
+      clearMessages();
+    }
+
+    // Login
+    loginFormElement.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("login-email").value;
+      const password = document.getElementById("login-password").value;
+      if (!email || !password) { showMessage(loginMessage, "Please fill in all fields", "error"); return; }
+
+      loginLoading.classList.add("active");
+      clearMessages();
+
+      try {
+        const { data: userData, error: userError } = await supabaseClient
+          .from("users").select("*").eq("email", email).single();
+        if (userError || !userData) throw new Error("Invalid email or password");
+        if (!userData.active) throw new Error("Your account has been deactivated. Please contact support.");
+        if (userData.password !== password) throw new Error("Invalid email or password");
+
+        const { error: updateError } = await supabaseClient
+          .from("users").update({ last_login: new Date().toISOString() }).eq("id", userData.id);
+        if (updateError) console.error("Failed to update last_login:", updateError);
+
+        localStorage.setItem("fundfinder_user", JSON.stringify({
+          id: userData.id, email: userData.email, role: userData.role,
+          last_login: userData.last_login, active: userData.active,
+        }));
+
+        if (userData.role === "SMME") window.location.href = "smme-dashboard.html";
+        else if (userData.role === "FUNDER") window.location.href = "funder-dashboard.html";
+        else if (userData.role === "ADMIN") window.location.href = "admin-dashboard.html";
+      } catch (error) {
+        showMessage(loginMessage, error.message, "error");
+      } finally {
+        loginLoading.classList.remove("active");
+      }
+    });
+
+    // Signup
+    signupFormElement.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("signup-email").value;
+      const password = document.getElementById("signup-password").value;
+      const role = userRoleInput.value;
+
+      if (!email || !password || !role) { showMessage(signupMessage, "Please fill in all fields and select your role", "error"); return; }
+      if (password.length < 6) { showMessage(signupMessage, "Password must be at least 6 characters long", "error"); return; }
+
+      signupLoading.classList.add("active");
+      clearMessages();
+
+      try {
+        const { data: existingUser } = await supabaseClient
+          .from("users").select("email").eq("email", email).single();
+        if (existingUser) throw new Error("An account with this email already exists");
+
+        const { data: userData, error: userError } = await supabaseClient
+          .from("users").insert([{
+            email: email, password: password, role: role,
+            last_login: null, created_at: new Date().toISOString(),
+          }]).select();
+        if (userError) throw userError;
+
+        showMessage(signupMessage, "Account created successfully! You can now login.", "success");
+        signupFormElement.reset();
+        roleOptions.forEach((opt) => {
+          opt.classList.remove("selected", "border-brand-500", "bg-brand-50", "shadow-md");
+          opt.classList.add("border-slate-200", "bg-slate-50");
+        });
+        userRoleInput.value = "";
+
+        setTimeout(() => setActiveTab('login'), 2000);
+      } catch (error) {
+        console.error("Signup error:", error);
+        showMessage(signupMessage, error.message, "error");
+      } finally {
+        signupLoading.classList.remove("active");
+      }
+    });
+
+    // Helpers
+    function showMessage(element, text, type) {
+      element.textContent = text;
+      element.className = "message mt-4 px-4 py-3 rounded-xl text-sm font-medium text-center " +
+        (type === 'success'
+          ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+          : 'bg-rose-50 text-rose-800 border border-rose-200');
+    }
+
+    function clearMessages() {
+      [loginMessage, signupMessage, recoveryMessage].forEach(m => {
+        m.className = "message mt-4 px-4 py-3 rounded-xl text-sm font-medium text-center";
+        m.textContent = "";
       });
+    }
 
-      // Step 1: Email verification
-      emailVerificationForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        const email = document.getElementById("recovery-email").value;
-
-        if (!email) {
-          showMessage(
-            recoveryMessage,
-            "Please enter your email address",
-            "error"
-          );
-          return;
-        }
-
-        // Show loading
-        recoveryLoading.classList.add("active");
-        recoveryLoadingText.textContent = "Checking email...";
-        clearMessages();
-
-        try {
-          // Check if user exists
-          const { data: userData, error: userError } = await supabaseClient
-            .from("users")
-            .select("*")
-            .eq("email", email)
-            .single();
-
-          if (userError || !userData) {
-            throw new Error("No account found with this email address");
-          }
-
-          // Store email for next step
-          recoveryEmail = email;
-
-          // Move to step 2
-          goToStep(2);
-          showMessage(
-            recoveryMessage,
-            "Email verified! Please create a new password.",
-            "success"
-          );
-        } catch (error) {
-          showMessage(recoveryMessage, error.message, "error");
-        } finally {
-          recoveryLoading.classList.remove("active");
-        }
-      });
-
-      // Step 2: New password
-      newPasswordForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        const newPassword = document.getElementById("new-password").value;
-        const confirmPassword =
-          document.getElementById("confirm-password").value;
-
-        if (!newPassword || !confirmPassword) {
-          showMessage(
-            recoveryMessage,
-            "Please fill in both password fields",
-            "error"
-          );
-          return;
-        }
-
-        if (newPassword.length < 6) {
-          showMessage(
-            recoveryMessage,
-            "Password must be at least 6 characters long",
-            "error"
-          );
-          return;
-        }
-
-        if (newPassword !== confirmPassword) {
-          showMessage(recoveryMessage, "Passwords do not match", "error");
-          return;
-        }
-
-        // Show loading
-        recoveryLoading.classList.add("active");
-        recoveryLoadingText.textContent = "Updating password...";
-        clearMessages();
-
-        try {
-          // Update user password in database (plain text)
-          const { error: updateError } = await supabaseClient
-            .from("users")
-            .update({
-              password: newPassword, // Storing plain text password
-            })
-            .eq("email", recoveryEmail);
-
-          if (updateError) {
-            throw updateError;
-          }
-
-          showMessage(
-            recoveryMessage,
-            "Password reset successful! You can now login with your new password.",
-            "success"
-          );
-
-          // Close modal after success
-          setTimeout(() => {
-            closeRecoveryModal();
-
-            // Auto-fill the login form with the email
-            document.getElementById("login-email").value = recoveryEmail;
-            loginTab.click();
-          }, 3000);
-        } catch (error) {
-          console.error("Password recovery error:", error);
-          showMessage(
-            recoveryMessage,
-            "Error updating password. Please try again.",
-            "error"
-          );
-        } finally {
-          recoveryLoading.classList.remove("active");
-        }
-      });
-
-      // Helper functions for recovery flow
-      function goToStep(stepNumber) {
-        // Reset all steps
-        step1Form.classList.remove("active");
-        step2Form.classList.remove("active");
-        step1Indicator.classList.remove("active", "completed");
-        step2Indicator.classList.remove("active", "completed");
-
-        if (stepNumber === 1) {
-          step1Form.classList.add("active");
-          step1Indicator.classList.add("active");
-        } else if (stepNumber === 2) {
-          step2Form.classList.add("active");
-          step1Indicator.classList.add("completed");
-          step2Indicator.classList.add("active");
-        }
+    function checkAuthStatus() {
+      const userData = localStorage.getItem("fundfinder_user");
+      if (userData) {
+        const user = JSON.parse(userData);
+        if (user.role === "SMME") window.location.href = "smme-dashboard.html";
+        else if (user.role === "FUNDER") window.location.href = "funder-dashboard.html";
+        else if (user.role === "ADMIN") window.location.href = "admin-dashboard.html";
       }
+    }
+    checkAuthStatus();
 
-      function resetRecoveryForm() {
-        emailVerificationForm.reset();
-        newPasswordForm.reset();
-        recoveryEmail = "";
-        goToStep(1);
+    async function testConnection() {
+      try {
+        const { data, error } = await supabaseClient.from("users").select("*").limit(1);
+        if (error) console.error("Database connection error:", error);
+        else console.log("Database connection successful! Users table accessible.");
+      } catch (err) {
+        console.error("Connection test failed:", err);
       }
-
-      function closeRecoveryModal() {
-        passwordRecoveryModal.classList.remove("active");
-        resetRecoveryForm();
-        clearMessages();
-      }
-
-      // Login form submission
-      loginFormElement.addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        const email = document.getElementById("login-email").value;
-        const password = document.getElementById("login-password").value;
-
-        if (!email || !password) {
-          showMessage(loginMessage, "Please fill in all fields", "error");
-          return;
-        }
-
-        // Show loading
-        loginLoading.classList.add("active");
-        clearMessages();
-
-        try {
-          // Check if user exists and password matches (plain text comparison)
-          const { data: userData, error: userError } = await supabaseClient
-            .from("users")
-            .select("*")
-            .eq("email", email)
-            .single();
-
-          if (userError || !userData) {
-            throw new Error("Invalid email or password");
-          }
-
-          // Check if account is active
-          if (!userData.active) {
-            throw new Error(
-              "Your account has been deactivated. Please contact support."
-            );
-          }
-
-          // Compare passwords directly (plain text)
-          if (userData.password !== password) {
-            throw new Error("Invalid email or password");
-          }
-
-          // Update last_login timestamp
-          const { error: updateError } = await supabaseClient
-            .from("users")
-            .update({ last_login: new Date().toISOString() })
-            .eq("id", userData.id);
-
-          if (updateError) {
-            console.error("Failed to update last_login:", updateError);
-          }
-
-          // Store user session in localStorage
-          localStorage.setItem(
-            "fundfinder_user",
-            JSON.stringify({
-              id: userData.id,
-              email: userData.email,
-              role: userData.role,
-              last_login: userData.last_login,
-              active: userData.active,
-            })
-          );
-
-          // Redirect based on role
-          if (userData.role === "SMME") {
-            window.location.href = "smme-dashboard.html";
-          } else if (userData.role === "FUNDER") {
-            window.location.href = "funder-dashboard.html";
-          } else if (userData.role === "ADMIN") {
-            window.location.href = "admin-dashboard.html";
-          }
-        } catch (error) {
-          showMessage(loginMessage, error.message, "error");
-        } finally {
-          loginLoading.classList.remove("active");
-        }
-      });
-
-      // Signup form submission
-      signupFormElement.addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        const email = document.getElementById("signup-email").value;
-        const password = document.getElementById("signup-password").value;
-        const role = userRoleInput.value;
-
-        if (!email || !password || !role) {
-          showMessage(
-            signupMessage,
-            "Please fill in all fields and select your role",
-            "error"
-          );
-          return;
-        }
-
-        if (password.length < 6) {
-          showMessage(
-            signupMessage,
-            "Password must be at least 6 characters long",
-            "error"
-          );
-          return;
-        }
-
-        // Show loading
-        signupLoading.classList.add("active");
-        clearMessages();
-
-        try {
-          // Check if user already exists
-          const { data: existingUser, error: checkError } = await supabaseClient
-            .from("users")
-            .select("email")
-            .eq("email", email)
-            .single();
-
-          if (existingUser) {
-            throw new Error("An account with this email already exists");
-          }
-
-          // Create user in database with plain text password
-          const { data: userData, error: userError } = await supabaseClient
-            .from("users")
-            .insert([
-              {
-                email: email,
-                password: password, // Storing plain text password
-                role: role,
-                last_login: null,
-                created_at: new Date().toISOString(),
-              },
-            ])
-            .select();
-
-          if (userError) {
-            throw userError;
-          }
-
-          showMessage(
-            signupMessage,
-            "Account created successfully! You can now login.",
-            "success"
-          );
-          signupFormElement.reset();
-          roleOptions.forEach((opt) => opt.classList.remove("selected"));
-          userRoleInput.value = "";
-
-          // Auto-switch to login after successful signup
-          setTimeout(() => {
-            loginTab.click();
-          }, 2000);
-        } catch (error) {
-          console.error("Signup error:", error);
-          showMessage(signupMessage, error.message, "error");
-        } finally {
-          signupLoading.classList.remove("active");
-        }
-      });
-
-      // Helper functions
-      function showMessage(element, text, type) {
-        element.textContent = text;
-        element.className = `message ${type}`;
-      }
-
-      function clearMessages() {
-        loginMessage.className = "message";
-        loginMessage.textContent = "";
-        signupMessage.className = "message";
-        signupMessage.textContent = "";
-        recoveryMessage.className = "message";
-        recoveryMessage.textContent = "";
-      }
-
-      // Check if user is already logged in
-      function checkAuthStatus() {
-        const userData = localStorage.getItem("fundfinder_user");
-
-        if (userData) {
-          const user = JSON.parse(userData);
-
-          if (user.role === "SMME") {
-            window.location.href = "smme-dashboard.html";
-          } else if (user.role === "FUNDER") {
-            window.location.href = "funder-dashboard.html";
-          } else if (user.role === "ADMIN") {
-            window.location.href = "admin-dashboard.html";
-          }
-        }
-      }
-
-      // Check auth status on page load
-      checkAuthStatus();
-
-      // Test function to verify database connection
-      async function testConnection() {
-        try {
-          const { data, error } = await supabaseClient
-            .from("users")
-            .select("*")
-            .limit(1);
-
-          if (error) {
-            console.error("Database connection error:", error);
-          } else {
-            console.log(
-              "Database connection successful! Users table accessible."
-            );
-          }
-        } catch (err) {
-          console.error("Connection test failed:", err);
-        }
-      }
-
-      // Test the connection when page loads
-      testConnection();
-    </script>
-  </body>
+    }
+    testConnection();
+  </script>
+</body>
 </html>

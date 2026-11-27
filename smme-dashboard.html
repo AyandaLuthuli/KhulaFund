@@ -1,748 +1,378 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FundFinder - SMME Dashboard</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <style>
-      /* CSS Variables for Orange Design System */
-      :root {
-        --color-white: #ffffff;
-        --color-orange: #ff8c42; /* Softer orange */
-        --color-orange-medium: #ffa366;
-        --color-orange-light: #ffc8a8;
-        --color-orange-very-light: #ffe8db;
-        --color-dark: #333333;
-        --color-gray: #666666;
-        --color-gray-light: #f5f5f5;
-        --color-gray-border: #e0e0e0;
-        --font-heading: "Archivo Black", sans-serif;
-        --font-body: "Archivo", sans-serif;
-        --border-radius-sm: 4px;
-        --border-radius-md: 8px;
-        --border-radius-lg: 12px;
-        --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
-        --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
-        --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
-        --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-      }
-
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      body {
-        font-family: var(--font-body);
-        line-height: 1.6;
-        color: var(--color-dark);
-        background: var(--color-gray-light);
-        min-height: 100vh;
-      }
-
-      /* Header */
-      .header {
-        background: var(--color-white);
-        padding: 1rem 2rem;
-        border-bottom: 2px solid var(--color-orange);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: var(--shadow-sm);
-      }
-
-      .logo {
-        font-weight: 700;
-        font-size: 1.8rem;
-        color: var(--color-orange);
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-family: var(--font-heading);
-      }
-
-      .nav-links {
-        display: flex;
-        gap: 2rem;
-        align-items: center;
-      }
-
-      .nav-links a {
-        color: var(--color-dark);
-        text-decoration: none;
-        font-weight: 600;
-        padding: 0.5rem 1rem;
-        border-radius: var(--border-radius-md);
-        transition: var(--transition);
-        position: relative;
-      }
-
-      .nav-links a:hover,
-      .nav-links a.active {
-        color: var(--color-orange);
-      }
-
-      .nav-links a.active::after {
-        content: "";
-        position: absolute;
-        bottom: -2px;
-        left: 1rem;
-        right: 1rem;
-        height: 3px;
-        background: var(--color-orange);
-        border-radius: var(--border-radius-sm);
-      }
-
-      .user-menu {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-      }
-
-      .user-info {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-
-      .user-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: linear-gradient(
-          135deg,
-          var(--color-orange),
-          var(--color-orange-medium)
-        );
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: 600;
-      }
-
-      .logout-btn {
-        background: #ff4757;
-        color: white;
-        border: none;
-        padding: 0.6rem 1.2rem;
-        border-radius: var(--border-radius-md);
-        cursor: pointer;
-        font-weight: 600;
-        transition: var(--transition);
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-
-      .logout-btn:hover {
-        background: #ff3742;
-        transform: translateY(-2px);
-      }
-
-      /* Main Content */
-      .main-content {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 2rem;
-      }
-
-      /* Welcome Section */
-      .welcome-section {
-        background: linear-gradient(
-          135deg,
-          var(--color-orange) 0%,
-          var(--color-orange-medium) 100%
-        );
-        color: white;
-        padding: 4rem 3rem;
-        border-radius: var(--border-radius-lg);
-        text-align: center;
-        margin-bottom: 3rem;
-        box-shadow: var(--shadow-lg);
-      }
-
-      .welcome-section h1 {
-        font-size: 3rem;
-        margin-bottom: 1rem;
-        font-weight: 700;
-        font-family: var(--font-heading);
-      }
-
-      .welcome-section p {
-        font-size: 1.3rem;
-        opacity: 0.9;
-        max-width: 800px;
-        margin: 0 auto 2rem;
-      }
-
-      .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1.5rem;
-        margin-top: 3rem;
-      }
-
-      .stat-card {
-        background: rgba(255, 255, 255, 0.1);
-        padding: 2rem;
-        border-radius: var(--border-radius-lg);
-        text-align: center;
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        transition: var(--transition);
-      }
-
-      .stat-card:hover {
-        transform: translateY(-5px);
-        background: rgba(255, 255, 255, 0.15);
-      }
-
-      .stat-card i {
-        font-size: 2.5rem;
-        margin-bottom: 1rem;
-        opacity: 0.9;
-      }
-
-      .stat-card h3 {
-        font-size: 2rem;
-        margin-bottom: 0.5rem;
-        font-weight: 700;
-      }
-
-      .stat-card p {
-        font-size: 1rem;
-        opacity: 0.8;
-      }
-
-      /* Quick Actions */
-      .quick-actions {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 2rem;
-        margin-bottom: 3rem;
-      }
-
-      .action-card {
-        background: var(--color-white);
-        padding: 2.5rem;
-        border-radius: var(--border-radius-lg);
-        text-align: center;
-        box-shadow: var(--shadow-md);
-        transition: var(--transition);
-        border: 2px solid transparent;
-      }
-
-      .action-card:hover {
-        transform: translateY(-10px);
-        border-color: var(--color-orange);
-        box-shadow: var(--shadow-lg);
-      }
-
-      .action-card i {
-        font-size: 3rem;
-        color: var(--color-orange);
-        margin-bottom: 1.5rem;
-      }
-
-      .action-card h3 {
-        font-size: 1.5rem;
-        margin-bottom: 1rem;
-        color: var(--color-dark);
-        font-family: var(--font-heading);
-      }
-
-      .action-card p {
-        color: var(--color-gray);
-        margin-bottom: 2rem;
-        line-height: 1.6;
-      }
-
-      .action-btn {
-        background: var(--color-orange);
-        color: white;
-        border: none;
-        padding: 1rem 2rem;
-        border-radius: var(--border-radius-md);
-        font-weight: 600;
-        cursor: pointer;
-        transition: var(--transition);
-        width: 100%;
-        font-family: var(--font-body);
-      }
-
-      .action-btn:hover {
-        background: var(--color-orange-medium);
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-sm);
-      }
-
-      /* Pricing Section */
-      .pricing-section {
-        background: var(--color-white);
-        padding: 3rem;
-        border-radius: var(--border-radius-lg);
-        box-shadow: var(--shadow-md);
-        margin-bottom: 2rem;
-      }
-
-      .section-title {
-        text-align: center;
-        font-size: 2.5rem;
-        color: var(--color-dark);
-        margin-bottom: 3rem;
-        background: linear-gradient(
-          135deg,
-          var(--color-orange),
-          var(--color-orange-medium)
-        );
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-family: var(--font-heading);
-      }
-
-      .pricing-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 2rem;
-      }
-
-      .pricing-card {
-        background: var(--color-gray-light);
-        padding: 2.5rem;
-        border-radius: var(--border-radius-lg);
-        text-align: center;
-        transition: var(--transition);
-        border: 3px solid transparent;
-        position: relative;
-      }
-
-      .pricing-card.popular {
-        background: var(--color-white);
-        border-color: var(--color-orange);
-        transform: scale(1.05);
-      }
-
-      .pricing-card.popular::before {
-        content: "MOST POPULAR";
-        position: absolute;
-        top: -15px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: var(--color-orange);
-        color: white;
-        padding: 0.5rem 1.5rem;
-        border-radius: 25px;
-        font-size: 0.8rem;
-        font-weight: 600;
-      }
-
-      .pricing-card:hover {
-        transform: translateY(-10px);
-      }
-
-      .pricing-card.popular:hover {
-        transform: scale(1.05) translateY(-10px);
-      }
-
-      .plan-name {
-        font-size: 1.5rem;
-        font-weight: 700;
-        margin-bottom: 1rem;
-        color: var(--color-dark);
-        font-family: var(--font-heading);
-      }
-
-      .plan-price {
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin-bottom: 1.5rem;
-        background: linear-gradient(
-          135deg,
-          var(--color-orange),
-          var(--color-orange-medium)
-        );
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-      }
-
-      .plan-price .period {
-        font-size: 1rem;
-        color: var(--color-gray);
-      }
-
-      .plan-features {
-        list-style: none;
-        margin-bottom: 2rem;
-        text-align: left;
-      }
-
-      .plan-features li {
-        padding: 0.8rem 0;
-        border-bottom: 1px solid var(--color-gray-border);
-        color: var(--color-gray);
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-
-      .plan-features li:last-child {
-        border-bottom: none;
-      }
-
-      .plan-features li i {
-        color: var(--color-orange);
-      }
-
-      .pricing-btn {
-        background: var(--color-orange);
-        color: white;
-        border: none;
-        padding: 1rem 2rem;
-        border-radius: var(--border-radius-md);
-        font-weight: 600;
-        cursor: pointer;
-        transition: var(--transition);
-        width: 100%;
-        font-family: var(--font-body);
-      }
-
-      .pricing-btn:hover {
-        background: var(--color-orange-medium);
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-sm);
-      }
-
-      .pricing-btn.secondary {
-        background: transparent;
-        border: 2px solid var(--color-orange);
-        color: var(--color-orange);
-      }
-
-      .pricing-btn.secondary:hover {
-        background: var(--color-orange);
-        color: white;
-      }
-
-      /* Responsive */
-      @media (max-width: 768px) {
-        .header {
-          flex-direction: column;
-          gap: 1rem;
-          padding: 1rem;
-        }
-
-        .nav-links {
-          gap: 0.5rem;
-        }
-
-        .nav-links a {
-          padding: 0.5rem;
-          font-size: 0.9rem;
-        }
-
-        .main-content {
-          padding: 1rem;
-        }
-
-        .welcome-section {
-          padding: 2rem 1rem;
-        }
-
-        .welcome-section h1 {
-          font-size: 2rem;
-        }
-
-        .quick-actions,
-        .pricing-grid {
-          grid-template-columns: 1fr;
-        }
-
-        .pricing-card.popular {
-          transform: none;
-        }
-
-        .pricing-card.popular:hover {
-          transform: translateY(-10px);
-        }
-
-        .stats-grid {
-          grid-template-columns: repeat(2, 1fr);
-          gap: 1rem;
-        }
-
-        .stat-card {
-          padding: 1.5rem;
-        }
-
-        .stat-card h3 {
-          font-size: 1.5rem;
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SMME Dashboard — FundFinder</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#fff3e0', 100: '#ffe0b2', 200: '#ffcc80', 300: '#ffb74d',
+              400: '#ffa726', 500: '#ff6d00', 600: '#e65100', 700: '#bf360c',
+              800: '#9a3412', 900: '#7c2d12',
+            },
+            slate: { 850: '#151e32', 900: '#0f172a', 950: '#090d16' }
+          },
+          boxShadow: {
+            'glass': '0 4px 30px rgba(15, 23, 42, 0.05)',
+            'elevated': '0 20px 40px -15px rgba(15, 23, 42, 0.09)',
+          }
         }
       }
+    };
+  </script>
+  <style>
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #f8fafc; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-900 font-sans antialiased selection:bg-brand-600 selection:text-white min-h-screen flex flex-col">
 
-      @media (max-width: 480px) {
-        .stats-grid {
-          grid-template-columns: 1fr;
-        }
+  <!-- Sticky Header -->
+  <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-glass">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-20">
 
-        .welcome-section h1 {
-          font-size: 1.8rem;
-        }
-
-        .section-title {
-          font-size: 2rem;
-        }
-
-        .action-card,
-        .pricing-card {
-          padding: 1.5rem;
-        }
-
-        .pricing-section {
-          padding: 1.5rem;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <!-- Header -->
-    <div class="header">
-      <div class="logo">
-        <i class="fas fa-hand-holding-usd"></i>
-        FundFinder
-      </div>
-      <div class="nav-links">
-        <a href="smme-dashboard.html" class="active">Dashboard</a>
-        <a href="smme-profile.html">My Profile</a>
-        <a href="smme-funding-opportunities.html">Find Opportunities</a>
-        <a href="smme-applications.html">My Applications</a>
-      </div>
-      <div class="user-menu">
-        <div class="user-info">
-          <div class="user-avatar" id="user-avatar">S</div>
-          <div class="user-details">
-            <div class="user-name" id="user-name">SMME User</div>
+        <!-- Logo -->
+        <a href="smme-dashboard.html" class="flex items-center gap-2.5 group">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-600 to-brand-500 flex items-center justify-center text-white shadow-md shadow-brand-600/25 group-hover:scale-105 transition-transform">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+            </svg>
           </div>
+          <div class="flex flex-col">
+            <div class="flex items-center gap-1.5">
+              <span class="font-display font-extrabold text-xl tracking-tight text-slate-900">FundFinder</span>
+              <span class="w-2 h-2 rounded-full bg-brand-600"></span>
+            </div>
+            <span class="text-[10px] uppercase tracking-widest font-bold text-brand-600 -mt-1">SMME Portal</span>
+          </div>
+        </a>
+
+        <!-- Desktop Nav -->
+        <nav class="hidden lg:flex items-center gap-7">
+          <a href="smme-dashboard.html" class="text-sm font-semibold text-brand-600 relative pb-1">
+            Dashboard
+            <span class="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-600 rounded-full"></span>
+          </a>
+          <a href="smme-profile.html" class="text-sm font-medium text-slate-600 hover:text-brand-600 transition-colors">My Profile</a>
+          <a href="smme-funding-opportunities.html" class="text-sm font-medium text-slate-600 hover:text-brand-600 transition-colors">Find Opportunities</a>
+          <a href="smme-applications.html" class="text-sm font-medium text-slate-600 hover:text-brand-600 transition-colors">My Applications</a>
+        </nav>
+
+        <!-- User Menu -->
+        <div class="hidden lg:flex items-center gap-3">
+          <div class="flex items-center gap-2.5 pl-3 pr-4 py-1.5 rounded-xl bg-slate-50 border border-slate-200">
+            <div id="user-avatar" class="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-600 to-brand-500 text-white flex items-center justify-center font-bold text-sm shadow-sm">S</div>
+            <div class="flex flex-col">
+              <div id="user-name" class="text-xs font-semibold text-slate-900 leading-tight">SMME User</div>
+              <div class="text-[10px] text-slate-500">SMME account</div>
+            </div>
+          </div>
+          <button onclick="logout()" class="px-4 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-sm font-semibold transition-colors flex items-center gap-2">
+            <i class="fas fa-sign-out-alt text-xs"></i>
+            <span>Logout</span>
+          </button>
         </div>
-        <button class="logout-btn" onclick="logout()">
-          <i class="fas fa-sign-out-alt"></i> Logout
-        </button>
+
+        <!-- Mobile Hamburger -->
+        <div class="lg:hidden flex items-center">
+          <button id="mobile-menu-btn" aria-label="Toggle Menu" class="p-2.5 rounded-xl text-slate-700 hover:bg-slate-100 transition-colors">
+            <i class="fas fa-bars text-xl" id="mobile-menu-icon"></i>
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="main-content">
-      <!-- Welcome Section -->
-      <section class="welcome-section">
-        <h1>Welcome to Your Funding Journey! 🚀</h1>
-        <p>
-          Unlock your business potential with access to R50+ million in funding
-          opportunities. Connect with investors who believe in your vision.
-        </p>
+    <!-- Mobile Drawer -->
+    <div id="mobile-menu" class="hidden lg:hidden bg-white border-b border-slate-200 px-4 pt-2 pb-6 space-y-2 shadow-xl">
+      <a href="smme-dashboard.html" class="block px-3 py-2.5 rounded-xl text-base font-semibold text-brand-600 bg-brand-50">Dashboard</a>
+      <a href="smme-profile.html" class="block px-3 py-2.5 rounded-xl text-base font-medium text-slate-700 hover:bg-brand-50 hover:text-brand-600">My Profile</a>
+      <a href="smme-funding-opportunities.html" class="block px-3 py-2.5 rounded-xl text-base font-medium text-slate-700 hover:bg-brand-50 hover:text-brand-600">Find Opportunities</a>
+      <a href="smme-applications.html" class="block px-3 py-2.5 rounded-xl text-base font-medium text-slate-700 hover:bg-brand-50 hover:text-brand-600">My Applications</a>
+      <div class="pt-3 border-t border-slate-100 flex flex-col gap-2.5">
+        <div class="flex items-center gap-2.5 px-3 py-2">
+          <div id="user-avatar-mobile" class="w-9 h-9 rounded-lg bg-gradient-to-br from-brand-600 to-brand-500 text-white flex items-center justify-center font-bold text-sm">S</div>
+          <div class="flex flex-col">
+            <div id="user-name-mobile" class="text-sm font-semibold text-slate-900 leading-tight">SMME User</div>
+            <div class="text-[10px] text-slate-500">SMME account</div>
+          </div>
+        </div>
+        <button onclick="logout()" class="w-full py-2.5 text-center text-sm font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-xl">Logout</button>
+      </div>
+    </div>
+  </header>
 
-        <div class="stats-grid">
-          <div class="stat-card">
-            <i class="fas fa-bullseye"></i>
-            <h3>85%</h3>
-            <p>Success Rate</p>
-          </div>
-          <div class="stat-card">
-            <i class="fas fa-users"></i>
-            <h3>500+</h3>
-            <p>Active Investors</p>
-          </div>
-          <div class="stat-card">
-            <i class="fas fa-rocket"></i>
-            <h3>R50M+</h3>
-            <p>Funding Deployed</p>
-          </div>
-          <div class="stat-card">
-            <i class="fas fa-clock"></i>
-            <h3>24h</h3>
-            <p>Average Response</p>
+  <main class="flex-1">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+
+      <!-- Welcome Hero -->
+      <section class="relative overflow-hidden rounded-3xl bg-slate-900 text-white p-8 sm:p-12 border border-slate-800 shadow-elevated">
+        <div class="relative z-10">
+          <h1 class="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl leading-tight mb-4 max-w-2xl">
+            Welcome to your <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-brand-300">funding journey</span>.
+          </h1>
+          <p class="text-slate-300 text-base sm:text-lg max-w-2xl mb-8 leading-relaxed">
+            Unlock your business potential with access to R50M+ in funding opportunities. Connect with investors who believe in your vision.
+          </p>
+
+          <!-- Stats Grid -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div class="bg-white/5 border border-white/10 backdrop-blur-sm rounded-2xl p-5">
+              <div class="w-10 h-10 rounded-xl bg-brand-600/20 border border-brand-500/30 flex items-center justify-center mb-3">
+                <i class="fas fa-bullseye text-brand-400"></i>
+              </div>
+              <div class="font-display font-extrabold text-2xl sm:text-3xl text-white" data-stat="85" data-suffix="%">85%</div>
+              <div class="text-xs text-slate-400 mt-0.5">Success Rate</div>
+            </div>
+            <div class="bg-white/5 border border-white/10 backdrop-blur-sm rounded-2xl p-5">
+              <div class="w-10 h-10 rounded-xl bg-brand-600/20 border border-brand-500/30 flex items-center justify-center mb-3">
+                <i class="fas fa-users text-brand-400"></i>
+              </div>
+              <div class="font-display font-extrabold text-2xl sm:text-3xl text-white" data-stat="500" data-suffix="+">500+</div>
+              <div class="text-xs text-slate-400 mt-0.5">Active Investors</div>
+            </div>
+            <div class="bg-white/5 border border-white/10 backdrop-blur-sm rounded-2xl p-5">
+              <div class="w-10 h-10 rounded-xl bg-brand-600/20 border border-brand-500/30 flex items-center justify-center mb-3">
+                <i class="fas fa-rocket text-brand-400"></i>
+              </div>
+              <div class="font-display font-extrabold text-2xl sm:text-3xl text-white">R50M+</div>
+              <div class="text-xs text-slate-400 mt-0.5">Funding Deployed</div>
+            </div>
+            <div class="bg-white/5 border border-white/10 backdrop-blur-sm rounded-2xl p-5">
+              <div class="w-10 h-10 rounded-xl bg-brand-600/20 border border-brand-500/30 flex items-center justify-center mb-3">
+                <i class="fas fa-clock text-brand-400"></i>
+              </div>
+              <div class="font-display font-extrabold text-2xl sm:text-3xl text-white" data-stat="24" data-suffix="h">24h</div>
+              <div class="text-xs text-slate-400 mt-0.5">Average Response</div>
+            </div>
           </div>
         </div>
       </section>
 
       <!-- Quick Actions -->
-      <div class="quick-actions">
-        <div class="action-card">
-          <i class="fas fa-user-edit"></i>
-          <h3>Complete Your Profile</h3>
-          <p>
-            Finish setting up your business profile to unlock personalized
-            funding matches and increase your chances of approval.
-          </p>
-          <button class="action-btn" onclick="goToProfile()">
-            Update Profile
-          </button>
+      <section>
+        <div class="mb-6">
+          <h2 class="font-display font-extrabold text-2xl text-slate-900">Quick actions</h2>
+          <p class="text-sm text-slate-600 mt-1">Everything you need to move your funding journey forward.</p>
         </div>
 
-        <div class="action-card">
-          <i class="fas fa-search-dollar"></i>
-          <h3>Find Funding</h3>
-          <p>
-            Discover funding opportunities perfectly matched to your business
-            using our AI-powered matching system.
-          </p>
-          <button class="action-btn" onclick="findFunding()">
-            Explore Opportunities
-          </button>
-        </div>
-
-        <div class="action-card">
-          <i class="fas fa-file-alt"></i>
-          <h3>Track Applications</h3>
-          <p>
-            Monitor your funding applications, check status updates, and manage
-            your submissions in one place.
-          </p>
-          <button class="action-btn" onclick="viewApplications()">
-            View Applications
-          </button>
-        </div>
-      </div>
-
-      <!-- Pricing Section -->
-      <section class="pricing-section">
-        <h2 class="section-title">Unlock Premium Features</h2>
-        <div class="pricing-grid">
-          <!-- Freemium Plan -->
-          <div class="pricing-card">
-            <div class="plan-name">Starter</div>
-            <div class="plan-price">R0<span class="period">/month</span></div>
-            <ul class="plan-features">
-              <li><i class="fas fa-check"></i> Basic investor matching</li>
-              <li><i class="fas fa-check"></i> 5 funding applications/month</li>
-              <li><i class="fas fa-check"></i> Standard profile listing</li>
-              <li><i class="fas fa-check"></i> Email support</li>
-              <li><i class="fas fa-times"></i> Premium investor access</li>
-              <li><i class="fas fa-times"></i> Advanced analytics</li>
-              <li><i class="fas fa-times"></i> Priority application review</li>
-            </ul>
-            <button class="pricing-btn secondary">Current Plan</button>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div class="group bg-slate-200/60 backdrop-blur-sm rounded-2xl border border-slate-300/60 shadow-sm hover:shadow-elevated hover:border-brand-400 transition-all p-7 flex flex-col">
+            <div class="w-12 h-12 rounded-xl bg-brand-600 text-white flex items-center justify-center text-xl shadow-sm mb-5">
+              <i class="fas fa-user-edit"></i>
+            </div>
+            <h3 class="font-display font-bold text-lg text-slate-900 mb-2">Complete your profile</h3>
+            <p class="text-sm text-slate-700 leading-relaxed flex-grow mb-6">Finish setting up your business profile to unlock personalized funding matches and increase your chances of approval.</p>
+            <button onclick="goToProfile()" class="w-full py-3 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold text-sm shadow-md shadow-brand-600/20 transition-all flex items-center justify-center gap-2">
+              <i class="fas fa-arrow-right text-xs"></i>
+              Update Profile
+            </button>
           </div>
 
-          <!-- Premium Plan -->
-          <div class="pricing-card popular">
-            <div class="plan-name">Growth Pro</div>
-            <div class="plan-price">R499<span class="period">/month</span></div>
-            <ul class="plan-features">
-              <li><i class="fas fa-check"></i> Advanced AI matching</li>
-              <li><i class="fas fa-check"></i> Unlimited applications</li>
-              <li><i class="fas fa-check"></i> Premium profile featuring</li>
-              <li><i class="fas fa-check"></i> Priority support 24/7</li>
-              <li><i class="fas fa-check"></i> Exclusive investor network</li>
-              <li><i class="fas fa-check"></i> Detailed analytics dashboard</li>
-              <li><i class="fas fa-check"></i> Personal funding advisor</li>
+          <div class="group bg-slate-200/60 backdrop-blur-sm rounded-2xl border border-slate-300/60 shadow-sm hover:shadow-elevated hover:border-brand-400 transition-all p-7 flex flex-col">
+            <div class="w-12 h-12 rounded-xl bg-brand-600 text-white flex items-center justify-center text-xl shadow-sm mb-5">
+              <i class="fas fa-search-dollar"></i>
+            </div>
+            <h3 class="font-display font-bold text-lg text-slate-900 mb-2">Find funding</h3>
+            <p class="text-sm text-slate-700 leading-relaxed flex-grow mb-6">Discover funding opportunities perfectly matched to your business using our AI-powered matching system.</p>
+            <button onclick="findFunding()" class="w-full py-3 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold text-sm shadow-md shadow-brand-600/20 transition-all flex items-center justify-center gap-2">
+              <i class="fas fa-arrow-right text-xs"></i>
+              Explore Opportunities
+            </button>
+          </div>
+
+          <div class="group bg-slate-200/60 backdrop-blur-sm rounded-2xl border border-slate-300/60 shadow-sm hover:shadow-elevated hover:border-brand-400 transition-all p-7 flex flex-col">
+            <div class="w-12 h-12 rounded-xl bg-brand-600 text-white flex items-center justify-center text-xl shadow-sm mb-5">
+              <i class="fas fa-file-alt"></i>
+            </div>
+            <h3 class="font-display font-bold text-lg text-slate-900 mb-2">Track applications</h3>
+            <p class="text-sm text-slate-700 leading-relaxed flex-grow mb-6">Monitor your funding applications, check status updates, and manage your submissions in one place.</p>
+            <button onclick="viewApplications()" class="w-full py-3 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold text-sm shadow-md shadow-brand-600/20 transition-all flex items-center justify-center gap-2">
+              <i class="fas fa-arrow-right text-xs"></i>
+              View Applications
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Pricing Section -->
+      <section class="bg-slate-200/60 backdrop-blur-sm rounded-2xl border border-slate-300/60 shadow-sm p-6 sm:p-10">
+        <div class="text-center max-w-2xl mx-auto mb-10">
+          <span class="text-xs font-bold uppercase tracking-widest text-brand-700">Plans &amp; Pricing</span>
+          <h2 class="font-display font-extrabold text-2xl sm:text-3xl text-slate-900 mt-2 mb-3">Unlock premium features</h2>
+          <p class="text-sm sm:text-base text-slate-700">Choose the plan that matches your funding ambitions. Cancel anytime.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-6">
+
+          <!-- Starter -->
+          <div class="rounded-2xl bg-white/70 border border-slate-300/60 p-7 flex flex-col relative">
+            <div class="font-display font-bold text-lg text-slate-900 mb-1">Starter</div>
+            <div class="font-display font-extrabold text-3xl text-slate-900 mb-5">
+              R0<span class="text-sm font-medium text-slate-500">/month</span>
+            </div>
+            <ul class="space-y-3 text-sm text-slate-700 flex-grow mb-6">
+              <li class="flex items-start gap-2"><i class="fas fa-check text-emerald-600 text-xs mt-1"></i><span>Basic investor matching</span></li>
+              <li class="flex items-start gap-2"><i class="fas fa-check text-emerald-600 text-xs mt-1"></i><span>5 funding applications/month</span></li>
+              <li class="flex items-start gap-2"><i class="fas fa-check text-emerald-600 text-xs mt-1"></i><span>Standard profile listing</span></li>
+              <li class="flex items-start gap-2"><i class="fas fa-check text-emerald-600 text-xs mt-1"></i><span>Email support</span></li>
+              <li class="flex items-start gap-2 text-slate-400"><i class="fas fa-times text-slate-400 text-xs mt-1"></i><span>Premium investor access</span></li>
+              <li class="flex items-start gap-2 text-slate-400"><i class="fas fa-times text-slate-400 text-xs mt-1"></i><span>Advanced analytics</span></li>
+              <li class="flex items-start gap-2 text-slate-400"><i class="fas fa-times text-slate-400 text-xs mt-1"></i><span>Priority application review</span></li>
             </ul>
-            <button class="pricing-btn" onclick="upgradeToPremium()">
+            <button class="w-full py-3 rounded-xl bg-white/80 text-slate-700 border-2 border-slate-300 font-semibold text-sm transition-all cursor-default flex items-center justify-center gap-2">
+              <i class="fas fa-check text-emerald-600 text-xs"></i>
+              Current Plan
+            </button>
+          </div>
+
+          <!-- Growth Pro -->
+          <div class="rounded-2xl bg-gradient-to-b from-brand-600 to-brand-700 text-white p-7 flex flex-col relative shadow-elevated ring-2 ring-brand-500/30 md:scale-[1.03]">
+            <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-slate-900 text-brand-300 text-[10px] font-bold uppercase tracking-wider border border-brand-500/50 shadow">
+              <i class="fas fa-star mr-1"></i>Most Popular
+            </div>
+            <div class="font-display font-bold text-lg text-white mb-1">Growth Pro</div>
+            <div class="font-display font-extrabold text-3xl text-white mb-5">
+              R499<span class="text-sm font-medium text-brand-100">/month</span>
+            </div>
+            <ul class="space-y-3 text-sm text-brand-50 flex-grow mb-6">
+              <li class="flex items-start gap-2"><i class="fas fa-check text-brand-200 text-xs mt-1"></i><span>Advanced AI matching</span></li>
+              <li class="flex items-start gap-2"><i class="fas fa-check text-brand-200 text-xs mt-1"></i><span>Unlimited applications</span></li>
+              <li class="flex items-start gap-2"><i class="fas fa-check text-brand-200 text-xs mt-1"></i><span>Premium profile featuring</span></li>
+              <li class="flex items-start gap-2"><i class="fas fa-check text-brand-200 text-xs mt-1"></i><span>Priority support 24/7</span></li>
+              <li class="flex items-start gap-2"><i class="fas fa-check text-brand-200 text-xs mt-1"></i><span>Exclusive investor network</span></li>
+              <li class="flex items-start gap-2"><i class="fas fa-check text-brand-200 text-xs mt-1"></i><span>Detailed analytics dashboard</span></li>
+              <li class="flex items-start gap-2"><i class="fas fa-check text-brand-200 text-xs mt-1"></i><span>Personal funding advisor</span></li>
+            </ul>
+            <button onclick="upgradeToPremium()" class="w-full py-3 rounded-xl bg-white text-brand-700 font-semibold text-sm shadow-md hover:bg-brand-50 transition-all flex items-center justify-center gap-2">
+              <i class="fas fa-bolt text-xs"></i>
               Upgrade to Pro
             </button>
           </div>
 
-          <!-- Enterprise Plan -->
-          <div class="pricing-card">
-            <div class="plan-name">Enterprise</div>
-            <div class="plan-price">Custom</div>
-            <ul class="plan-features">
-              <li><i class="fas fa-check"></i> Everything in Growth Pro</li>
-              <li>
-                <i class="fas fa-check"></i> Custom investor introductions
-              </li>
-              <li><i class="fas fa-check"></i> White-glove onboarding</li>
-              <li><i class="fas fa-check"></i> Dedicated success team</li>
-              <li><i class="fas fa-check"></i> API access</li>
-              <li><i class="fas fa-check"></i> Custom reporting</li>
-              <li><i class="fas fa-check"></i> Strategic advisory</li>
+          <!-- Enterprise -->
+          <div class="rounded-2xl bg-white/70 border border-slate-300/60 p-7 flex flex-col">
+            <div class="font-display font-bold text-lg text-slate-900 mb-1">Enterprise</div>
+            <div class="font-display font-extrabold text-3xl text-slate-900 mb-5">Custom</div>
+            <ul class="space-y-3 text-sm text-slate-700 flex-grow mb-6">
+              <li class="flex items-start gap-2"><i class="fas fa-check text-emerald-600 text-xs mt-1"></i><span>Everything in Growth Pro</span></li>
+              <li class="flex items-start gap-2"><i class="fas fa-check text-emerald-600 text-xs mt-1"></i><span>Custom investor introductions</span></li>
+              <li class="flex items-start gap-2"><i class="fas fa-check text-emerald-600 text-xs mt-1"></i><span>White-glove onboarding</span></li>
+              <li class="flex items-start gap-2"><i class="fas fa-check text-emerald-600 text-xs mt-1"></i><span>Dedicated success team</span></li>
+              <li class="flex items-start gap-2"><i class="fas fa-check text-emerald-600 text-xs mt-1"></i><span>API access</span></li>
+              <li class="flex items-start gap-2"><i class="fas fa-check text-emerald-600 text-xs mt-1"></i><span>Custom reporting</span></li>
+              <li class="flex items-start gap-2"><i class="fas fa-check text-emerald-600 text-xs mt-1"></i><span>Strategic advisory</span></li>
             </ul>
-            <button class="pricing-btn secondary" onclick="contactSales()">
+            <button onclick="contactSales()" class="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm transition-all flex items-center justify-center gap-2">
+              <i class="fas fa-headset text-xs"></i>
               Contact Sales
             </button>
           </div>
         </div>
       </section>
+
     </div>
+  </main>
 
-    <script>
-      // Load user data
-      document.addEventListener("DOMContentLoaded", function () {
-        const userData = JSON.parse(localStorage.getItem("fundfinder_user"));
+  <script>
+    // ============================================================
+    // ⚠️ BACKEND CONTRACT — localStorage key + role guard preserved
+    // ============================================================
+    document.addEventListener("DOMContentLoaded", function () {
+      const userData = JSON.parse(localStorage.getItem("fundfinder_user"));
 
-        if (!userData || userData.role !== "SMME") {
-          window.location.href = "index.html";
-          return;
-        }
-
-        // Display user info
-        document.getElementById("user-name").textContent =
-          userData.email.split("@")[0];
-        document.getElementById("user-avatar").textContent = userData.email
-          .charAt(0)
-          .toUpperCase();
-
-        // Animate stats counter
-        animateStats();
-      });
-
-      function animateStats() {
-        const stats = document.querySelectorAll(".stat-card h3");
-        stats.forEach((stat) => {
-          const target = parseInt(stat.textContent);
-          let current = 0;
-          const increment = target / 50;
-          const timer = setInterval(() => {
-            current += increment;
-            if (current >= target) {
-              current = target;
-              clearInterval(timer);
-            }
-            stat.textContent =
-              Math.floor(current) +
-              (stat.textContent.includes("%") ? "%" : "+");
-          }, 50);
-        });
-      }
-
-      function goToProfile() {
-        window.location.href = "smme-profile.html";
-      }
-
-      function findFunding() {
-        window.location.href = "smme-funding-opportunities.html";
-      }
-
-      function viewApplications() {
-        window.location.href = "smme-applications.html";
-      }
-
-      function upgradeToPremium() {
-        alert(
-          "🚀 Welcome to Growth Pro! Enjoy your 14-day free trial. You will be redirected to our secure payment gateway."
-        );
-        // In a real app, redirect to payment processing
-      }
-
-      function contactSales() {
-        alert(
-          "📞 Our sales team will contact you within 24 hours to discuss enterprise solutions."
-        );
-        // In a real app, open contact form
-      }
-
-      function logout() {
-        localStorage.removeItem("fundfinder_user");
+      if (!userData || userData.role !== "SMME") {
         window.location.href = "index.html";
+        return;
       }
-    </script>
-  </body>
+
+      const username = userData.email.split("@")[0];
+      const initial = userData.email.charAt(0).toUpperCase();
+
+      document.getElementById("user-name").textContent = username;
+      document.getElementById("user-avatar").textContent = initial;
+
+      const userMobile = document.getElementById("user-name-mobile");
+      const avatarMobile = document.getElementById("user-avatar-mobile");
+      if (userMobile) userMobile.textContent = username;
+      if (avatarMobile) avatarMobile.textContent = initial;
+
+      animateStats();
+    });
+
+    function animateStats() {
+      document.querySelectorAll("[data-stat]").forEach((el) => {
+        const target = parseInt(el.getAttribute("data-stat"), 10);
+        const suffix = el.getAttribute("data-suffix") || "";
+        if (isNaN(target)) return;
+
+        let current = 0;
+        const duration = 900;
+        const start = performance.now();
+
+        function tick(now) {
+          const progress = Math.min((now - start) / duration, 1);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          current = Math.round(target * eased);
+          el.textContent = current + suffix;
+          if (progress < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+      });
+    }
+
+    // ---------- Navigation (unchanged targets) ----------
+    function goToProfile() { window.location.href = "smme-profile.html"; }
+    function findFunding() { window.location.href = "smme-funding-opportunities.html"; }
+    function viewApplications() { window.location.href = "smme-applications.html"; }
+
+    function upgradeToPremium() {
+      alert("🚀 Welcome to Growth Pro! Enjoy your 14-day free trial. You will be redirected to our secure payment gateway.");
+    }
+
+    function contactSales() {
+      alert("📞 Our sales team will contact you within 24 hours to discuss enterprise solutions.");
+    }
+
+    function logout() {
+      localStorage.removeItem("fundfinder_user");
+      window.location.href = "index.html";
+    }
+
+    // ---------- Mobile menu ----------
+    const mobileMenuBtn = document.getElementById("mobile-menu-btn");
+    const mobileMenu = document.getElementById("mobile-menu");
+    const mobileMenuIcon = document.getElementById("mobile-menu-icon");
+
+    if (mobileMenuBtn) {
+      mobileMenuBtn.addEventListener("click", () => {
+        const hidden = mobileMenu.classList.contains("hidden");
+        if (hidden) {
+          mobileMenu.classList.remove("hidden");
+          mobileMenuIcon.classList.remove("fa-bars");
+          mobileMenuIcon.classList.add("fa-times");
+        } else {
+          mobileMenu.classList.add("hidden");
+          mobileMenuIcon.classList.remove("fa-times");
+          mobileMenuIcon.classList.add("fa-bars");
+        }
+      });
+    }
+  </script>
+</body>
 </html>
