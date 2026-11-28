@@ -164,6 +164,19 @@
         <div id="profileCriteria" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
       </div>
 
+      <!-- Error Banner (Hidden by default) -->
+      <div id="errorBanner" class="hidden rounded-xl bg-rose-50 border border-rose-200 p-4 text-sm text-rose-800">
+        <div class="flex items-start gap-2">
+          <i class="fas fa-exclamation-triangle mt-0.5"></i>
+          <div>
+            <strong>AI Matching Error.</strong> <span id="errorMessage"></span>
+            <button onclick="location.reload()" class="mt-2 block px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold transition-colors">
+              <i class="fas fa-redo mr-1.5"></i>Retry
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- AI Matching Stats -->
       <div id="aiMatchingHeader" class="hidden rounded-2xl bg-slate-900 text-white p-6 sm:p-8 border border-slate-800 shadow-elevated">
         <div class="flex items-center gap-3 mb-5">
@@ -277,7 +290,7 @@
           <div class="flex items-start gap-2">
             <input type="checkbox" id="termsAccepted" name="termsAccepted" required class="mt-1 w-4 h-4 accent-brand-600" />
             <label for="termsAccepted" class="text-xs text-slate-600 leading-relaxed">
-              I accept the terms and conditions and confirm the information provided is accurate. I understand that this application will be reviewed by the funding provider and that supporting documents are for review purposes only.
+              I accept the terms and conditions and confirm the information provided is accurate.
             </label>
           </div>
 
@@ -297,9 +310,10 @@
 
   <script>
     // ============================================================
-    // ⚠️ BACKEND CONTRACT — preserved from original
+    // ⚠️ BACKEND CONTRACT — AI-ONLY (No Fallback)
     // ============================================================
-    const GEMINI_API_KEY = "AQ.Ab8RN6JDX5yVhCCer4tvXjK9tcJJQfFtcxSCxcmYphsUTEC72w";
+    const GEMINI_API_KEY = "AQ.Ab8RN6KFnnQMPZR2YHj4jfNeGc5wvN9dCosu6tNgMVDgeQ1Thw"; // Your active key
+    const GEMINI_MODEL = "gemini-3.5-flash-lite"; // Valid, stable model
     const SUPABASE_URL = "https://ovvvwbtexnbxzacizokr.supabase.co";
     const SUPABASE_ANON_KEY =
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dnZ3YnRleG5ieHphY2l6b2tyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1ODQ5OTEsImV4cCI6MjA3OTE2MDk5MX0.Ii21cw1Iyops8Zo784P-25NKz2m-TCyJ2zWwI4V1kcE";
@@ -323,6 +337,8 @@
     const fileUploadArea = document.getElementById("fileUploadArea");
     const fileInput = document.getElementById("fileInput");
     const fileList = document.getElementById("fileList");
+    const errorBanner = document.getElementById("errorBanner");
+    const errorMessage = document.getElementById("errorMessage");
 
     let currentUser = null;
     let currentProfile = null;
@@ -377,218 +393,42 @@
         displayProfileCriteria(currentProfile);
 
         const { data: fundingOpportunities, error: fundingError } =
-          await supabaseClient.from("funding").select("*");
+          await supabaseClient.from("funding").select("*").eq("status", "active");
 
         if (fundingError) throw fundingError;
 
-        allFundingOpportunities = fundingOpportunities;
+        allFundingOpportunities = fundingOpportunities || [];
 
-        let matchingResults;
-        try {
-          matchingResults = await matchWithRealAI(currentProfile, fundingOpportunities);
-        } catch (aiError) {
-          console.warn("AI matching failed, using fallback:", aiError);
-          matchingResults = await matchWithFallback(currentProfile, fundingOpportunities);
-        }
-
-        displayMatchingResults(matchingResults);
-        displayOpportunities(matchingResults.matchedOpportunities);
-      } catch (error) {
-        console.error("Error loading data:", error);
-        displayBasicOpportunities(allFundingOpportunities.slice(0, 5));
-      } finally {
-        loading.style.display = "none";
-      }
-    }
-
-    // ---------- MATCHING LOGIC ----------
-    async function matchWithFallback(profile, opportunities) {
-      const matchedOpportunities = [];
-      const processedOpportunities = opportunities.slice(0, 10);
-
-      loading.innerHTML = `
-        <div class="spinner mx-auto mb-3"></div>
-        <p class="text-sm text-slate-700">🤖 AI matching unavailable, using fallback system...</p>
-        <p class="text-xs text-slate-500 mt-1">Showing top ${Math.min(5, processedOpportunities.length)} relevant opportunities</p>
-      `;
-
-      opportunitiesContainer.innerHTML = `
-        <div class="rounded-xl bg-amber-50 border border-amber-200 p-4 mb-4 text-sm text-amber-900">
-          <div class="flex items-start gap-2 mb-2">
-            <i class="fas fa-exclamation-triangle text-amber-600 mt-0.5"></i>
-            <div>
-              <strong>AI Matching Limited.</strong> Real AI matching is temporarily unavailable. Showing relevant opportunities based on your criteria.
+        if (allFundingOpportunities.length === 0) {
+          loading.style.display = "none";
+          opportunitiesContainer.innerHTML = `
+            <div class="rounded-2xl bg-slate-200/60 border border-slate-300/60 p-10 text-center">
+              <h3 class="font-display font-bold text-lg text-slate-900 mb-2">No Active Funding</h3>
+              <p class="text-sm text-slate-700">There are currently no active funding opportunities in the database.</p>
             </div>
-          </div>
-          <button onclick="retryAIMatching()" class="mt-2 px-4 py-2 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold transition-colors">
-            <i class="fas fa-redo mr-1.5"></i>Retry AI Matching
-          </button>
-        </div>
-        <div id="fallbackResults" class="space-y-4"></div>
-      `;
-
-      const fallbackResults = document.getElementById("fallbackResults");
-
-      for (let i = 0; i < Math.min(5, processedOpportunities.length); i++) {
-        const opportunity = processedOpportunities[i];
-        const basicScore = calculateBasicMatch(profile, opportunity);
-
-        if (basicScore >= 30) {
-          const fallbackOpportunity = {
-            ...opportunity,
-            matchScore: basicScore,
-            matchReasoning: generateFallbackReasoning(profile, opportunity, basicScore),
-            aiSuggestions: generateFallbackSuggestions(),
-          };
-          matchedOpportunities.push(fallbackOpportunity);
-          displaySingleOpportunity(fallbackOpportunity, fallbackResults);
+          `;
+          return;
         }
-        await new Promise((resolve) => setTimeout(resolve, 300));
-      }
 
-      if (matchedOpportunities.length === 0 && processedOpportunities.length > 0) {
-        const generalOpportunities = processedOpportunities.slice(0, 3).map((opp) => ({
-          ...opp,
-          matchScore: 25,
-          matchReasoning: "General opportunity - may not perfectly match your criteria",
-          aiSuggestions: [
-            "Review opportunity details carefully",
-            "Consider if your business can adapt",
-            "Contact funder for clarification",
-          ],
-        }));
-        generalOpportunities.forEach((opp) => {
-          matchedOpportunities.push(opp);
-          displaySingleOpportunity(opp, fallbackResults);
-        });
-      }
-
-      return {
-        totalOpportunities: opportunities.length,
-        matchedCount: matchedOpportunities.length,
-        averageMatchScore:
-          matchedOpportunities.length > 0
-            ? matchedOpportunities.reduce((sum, opp) => sum + opp.matchScore, 0) / matchedOpportunities.length
-            : 0,
-        matchedOpportunities: matchedOpportunities.sort((a, b) => b.matchScore - a.matchScore),
-        isFallback: true,
-      };
-    }
-
-    function calculateBasicMatch(profile, opportunity) {
-      let score = 0;
-      const criteria = opportunity.criteria || {};
-      const profileCriteria = profile.criteria || {};
-
-      if (criteria.sector && profile.business_sector) {
-        if (criteria.sector === profile.business_sector || criteria.sector === "any" || criteria.sector === "all") score += 30;
-        else if (criteria.sector.includes(profile.business_sector.toLowerCase())) score += 20;
-      } else score += 15;
-
-      if (criteria.region && profile.region) {
-        if (criteria.region === profile.region || criteria.region === "national" || criteria.region === "all") score += 25;
-        else if (criteria.region.includes(profile.region.toLowerCase())) score += 15;
-      } else score += 12;
-
-      if (criteria.business_stage && profileCriteria.business_stage) {
-        if (criteria.business_stage === profileCriteria.business_stage) score += 20;
-      } else score += 10;
-
-      if (criteria.funding_amount_min && profileCriteria.funding_amount_min) {
-        if (profileCriteria.funding_amount_min >= criteria.funding_amount_min &&
-            (!criteria.funding_amount_max || profileCriteria.funding_amount_min <= criteria.funding_amount_max)) score += 15;
-      } else score += 7;
-
-      if (criteria.years_min && profile.years_in_operation) {
-        if (profile.years_in_operation >= criteria.years_min) score += 10;
-      } else score += 5;
-
-      return Math.min(100, score);
-    }
-
-    function generateFallbackReasoning(profile, opportunity, score) {
-      const criteria = opportunity.criteria || {};
-      const reasons = [];
-      if (criteria.sector && profile.business_sector && (criteria.sector === profile.business_sector || criteria.sector === "any"))
-        reasons.push(`Sector match: ${profile.business_sector}`);
-      if (criteria.region && profile.region && (criteria.region === profile.region || criteria.region === "national"))
-        reasons.push(`Regional alignment: ${profile.region}`);
-      if (criteria.business_stage && profile.criteria?.business_stage && criteria.business_stage === profile.criteria.business_stage)
-        reasons.push(`Business stage fit: ${profile.criteria.business_stage}`);
-      if (reasons.length === 0) return "General opportunity - review details to assess fit";
-      return `Matches based on: ${reasons.join(", ")}. Score: ${score}%`;
-    }
-
-    function generateFallbackSuggestions() {
-      return [
-        "Review all opportunity requirements carefully",
-        "Consider how your business aligns with the funder's objectives",
-        "Prepare a strong application highlighting your relevant experience",
-      ];
-    }
-
-    async function retryAIMatching() {
-      const retryButton = document.querySelector('button[onclick="retryAIMatching()"]');
-      if (retryButton) {
-        retryButton.disabled = true;
-        retryButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Retrying...';
-      }
-      loading.style.display = "block";
-      loading.innerHTML = `
-        <div class="spinner mx-auto mb-3"></div>
-        <p class="text-sm text-slate-700">🔄 Retrying AI matching...</p>
-      `;
-      opportunitiesContainer.innerHTML = "";
-      try {
+        // Run AI Matching (No Fallback)
         const matchingResults = await matchWithRealAI(currentProfile, allFundingOpportunities);
         displayMatchingResults(matchingResults);
         displayOpportunities(matchingResults.matchedOpportunities);
+
       } catch (error) {
-        const fallbackResults = await matchWithFallback(currentProfile, allFundingOpportunities);
-        displayMatchingResults(fallbackResults);
-        displayOpportunities(fallbackResults.matchedOpportunities);
+        console.error("Error loading data:", error);
+        showError(error.message || "An unexpected error occurred while loading funding matches.");
       } finally {
         loading.style.display = "none";
-        if (retryButton) {
-          retryButton.disabled = false;
-          retryButton.innerHTML = '<i class="fas fa-redo"></i> Retry AI Matching';
-        }
       }
     }
 
-    function displayBasicOpportunities(opportunities) {
-      opportunitiesContainer.innerHTML = `
-        <div class="rounded-xl bg-slate-200/60 border border-slate-300/60 p-6 text-center">
-          <h3 class="font-display font-bold text-lg text-slate-900 mb-1">📋 Available funding opportunities</h3>
-          <p class="text-sm text-slate-700 mb-3">Showing ${opportunities.length} opportunities (AI matching unavailable)</p>
-          <button onclick="location.reload()" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-sm font-semibold transition-colors">
-            <i class="fas fa-redo mr-1.5"></i>Reload Page
-          </button>
-        </div>
-      `;
-      const opportunitiesList = document.createElement("div");
-      opportunitiesList.className = "space-y-4";
-      opportunities.forEach((opportunity) => {
-        const fundingIcon = getFundingTypeIcon(opportunity);
-        const element = document.createElement("div");
-        element.className = "bg-slate-200/60 backdrop-blur-sm rounded-2xl border border-slate-300/60 p-6 shadow-sm";
-        element.innerHTML = `
-          <h3 class="font-display font-bold text-base text-slate-900 mb-2"><i class="${fundingIcon} text-brand-600 mr-2"></i>${opportunity.name}</h3>
-          <p class="text-sm text-slate-700 mb-4">${opportunity.description || "No description available"}</p>
-          <div class="flex gap-2 justify-end">
-            <button onclick="viewDetails('${opportunity.id}')" class="px-4 py-2 rounded-lg bg-white/80 hover:bg-white text-slate-800 border border-slate-300 font-semibold text-xs transition-colors">
-              <i class="fas fa-info-circle mr-1.5"></i>View Details
-            </button>
-            <button onclick="applyForFunding('${opportunity.id}')" class="px-4 py-2 rounded-lg bg-brand-600 hover:bg-brand-500 text-white font-semibold text-xs shadow-sm transition-colors">
-              <i class="fas fa-paper-plane mr-1.5"></i>Apply Now
-            </button>
-          </div>
-        `;
-        opportunitiesList.appendChild(element);
-      });
-      opportunitiesContainer.appendChild(opportunitiesList);
+    function showError(msg) {
+      errorMessage.textContent = msg;
+      errorBanner.classList.remove("hidden");
     }
 
+    // ---------- MATCHING LOGIC (STRICT AI) ----------
     async function matchWithRealAI(profile, opportunities) {
       const matchedOpportunities = [];
       loading.innerHTML = `
@@ -614,26 +454,37 @@
 
       for (let i = 0; i < opportunities.length; i++) {
         const opportunity = opportunities[i];
-        if (!opportunity.criteria) {
-          processedCount++;
-          updateProgress(processedCount, opportunities.length, matchesFound);
-          continue;
-        }
+        
         try {
-          if (i > 0) await new Promise((resolve) => setTimeout(resolve, 2000));
+          if (i > 0) await new Promise((resolve) => setTimeout(resolve, 2000)); // Rate limit delay
+          
           const aiMatchResult = await getRealAIMatchAnalysis(profile, opportunity);
+          
           if (aiMatchResult.matchScore >= 40) {
             const matchedOpportunity = { ...opportunity, ...aiMatchResult };
             matchedOpportunities.push(matchedOpportunity);
             matchesFound++;
             displaySingleOpportunity(matchedOpportunity, liveResults);
           }
+          
           processedCount++;
           updateProgress(processedCount, opportunities.length, matchesFound);
+          
         } catch (error) {
-          if (error.message && error.message.includes("429")) throw new Error("Rate limit exceeded - switching to fallback");
-          processedCount++;
-          updateProgress(processedCount, opportunities.length, matchesFound);
+          console.error(`AI Matching failed for opportunity "${opportunity.name}":`, error);
+          showError(`AI processing failed: ${error.message}`);
+          
+          // Stop processing further to prevent spamming errors
+          progressContainer.innerHTML = `
+            <div class="text-center text-rose-700">
+              <h3 class="font-display font-bold text-lg mb-1">AI Processing Halted</h3>
+              <p class="text-sm mb-4">The AI API failed. Please check the console for details.</p>
+              <button onclick="location.reload()" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-sm font-semibold transition-colors">
+                Retry
+              </button>
+            </div>
+          `;
+          throw error; // Halt the entire process
         }
       }
 
@@ -642,14 +493,9 @@
           <div class="text-center">
             <h3 class="font-display font-bold text-lg text-slate-900 mb-1">🤖 No strong matches found</h3>
             <p class="text-sm text-slate-700 mb-4">No funding opportunities met the 40% match threshold with your business criteria.</p>
-            <div class="flex flex-wrap gap-2 justify-center">
-              <a href="smme-profile.html" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-sm font-semibold shadow-sm transition-colors">
-                <i class="fas fa-edit mr-1.5"></i>Update Criteria
-              </a>
-              <button onclick="showAllOpportunities()" class="px-4 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 text-sm font-semibold transition-colors">
-                <i class="fas fa-eye mr-1.5"></i>Show All Opportunities
-              </button>
-            </div>
+            <a href="smme-profile.html" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-sm font-semibold shadow-sm transition-colors">
+              <i class="fas fa-edit mr-1.5"></i>Update Criteria
+            </a>
           </div>
         `;
       } else {
@@ -657,9 +503,6 @@
           <div class="text-center">
             <h4 class="font-display font-bold text-base text-emerald-700 mb-1">✅ AI analysis complete</h4>
             <p class="text-sm text-slate-700 mb-3">Found ${matchedOpportunities.length} opportunities with 40%+ match score</p>
-            <button onclick="showAllOpportunities()" class="px-4 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 text-xs font-semibold transition-colors">
-              <i class="fas fa-eye mr-1.5"></i>Show All Opportunities
-            </button>
           </div>
         `;
       }
@@ -675,7 +518,91 @@
       };
     }
 
-    window.retryAIMatching = retryAIMatching;
+    async function getRealAIMatchAnalysis(profile, opportunity) {
+      const prompt = `
+CRITICAL: You MUST respond with ONLY valid JSON. No other text.
+
+Analyze the compatibility between this business and funding opportunity. Provide a JSON response with:
+- matchScore (0-100)
+- matchReasoning (string explaining key compatibility factors)
+- aiSuggestions (array of 3 application tips)
+
+BUSINESS PROFILE:
+- Name: ${profile.business_name}
+- Sector: ${profile.business_sector}
+- Region: ${profile.region}
+- Years in Operation: ${profile.years_in_operation}
+- Employees: ${profile.number_of_employees}
+- Business Stage: ${profile.criteria?.business_stage || "Not specified"}
+- Funding Need: R${profile.criteria?.funding_amount_min || "Not specified"} - R${profile.criteria?.funding_amount_max || "Open"}
+- Project: ${profile.project_description}
+
+FUNDING OPPORTUNITY:
+- Name: ${opportunity.name}
+- Description: ${opportunity.description}
+- Sector Focus: ${opportunity.criteria?.sector || "Any"}
+- Region Focus: ${opportunity.criteria?.region || "National"}
+- Business Stage: ${opportunity.criteria?.business_stage || "Any"}
+- Funding Range: ${opportunity.criteria?.amount_range || "Not specified"}
+- Requirements: ${opportunity.criteria?.requirements || "None"}
+
+Consider sector alignment, regional fit, business stage compatibility, funding amount appropriateness, and overall strategic fit. Be realistic but encouraging.
+
+RESPONSE FORMAT (JSON ONLY):
+{
+  "matchScore": 85,
+  "matchReasoning": "Strong sector alignment and regional fit...",
+  "aiSuggestions": ["Tip 1", "Tip 2", "Tip 3"]
+}
+`;
+
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.3, maxOutputTokens: 800 },
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`AI API request failed: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+        throw new Error("Invalid AI response structure (missing candidates)");
+      }
+
+      const aiResponse = data.candidates[0].content.parts[0].text;
+      const cleanedResponse = aiResponse.replace(/```json\s*|\s*```/g, "").trim();
+      const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error("No valid JSON found in AI response");
+
+      const result = JSON.parse(jsonMatch[0]);
+      if (typeof result.matchScore !== "number" || typeof result.matchReasoning !== "string" || !Array.isArray(result.aiSuggestions)) {
+        throw new Error("Invalid AI response format - missing required fields");
+      }
+      return result;
+    }
+
+    function updateProgress(processed, total, matches) {
+      const progressStats = document.getElementById("progressStats");
+      if (progressStats) {
+        progressStats.innerHTML = `
+          <div class="inline-block bg-white/80 px-3 py-1.5 rounded-lg border border-slate-300/60">
+            <strong>${processed}</strong> / ${total} processed
+          </div>
+          <div class="inline-block bg-white/80 px-3 py-1.5 rounded-lg border border-slate-300/60">
+            <strong>${matches}</strong> matches found
+          </div>
+        `;
+      }
+    }
 
     function displayProfileCriteria(profile) {
       let criteriaHTML = "";
@@ -708,35 +635,9 @@
             <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Years in Operation</div>
             <div class="text-sm font-semibold text-slate-900">${profile.years_in_operation} years</div>
           </div>
-          <div class="rounded-xl bg-white/70 border border-slate-300/60 p-4">
-            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Business Stage</div>
-            <div class="text-sm font-semibold text-slate-900">${profile.years_in_operation > 3 ? "Established" : "Growing"}</div>
-          </div>
         `;
-        if (profile.number_of_employees) {
-          criteriaHTML += `
-            <div class="rounded-xl bg-white/70 border border-slate-300/60 p-4">
-              <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Employees</div>
-              <div class="text-sm font-semibold text-slate-900">${profile.number_of_employees}</div>
-            </div>
-          `;
-        }
       }
       profileCriteria.innerHTML = criteriaHTML;
-    }
-
-    function updateProgress(processed, total, matches) {
-      const progressStats = document.getElementById("progressStats");
-      if (progressStats) {
-        progressStats.innerHTML = `
-          <div class="inline-block bg-white/80 px-3 py-1.5 rounded-lg border border-slate-300/60">
-            <strong>${processed}</strong> / ${total} processed
-          </div>
-          <div class="inline-block bg-white/80 px-3 py-1.5 rounded-lg border border-slate-300/60">
-            <strong>${matches}</strong> matches found
-          </div>
-        `;
-      }
     }
 
     function displaySingleOpportunity(opportunity, container) {
@@ -792,12 +693,6 @@
                 <div class="text-xs font-semibold text-slate-900">${opportunity.criteria.region.charAt(0).toUpperCase() + opportunity.criteria.region.slice(1)}</div>
               </div>
             ` : ""}
-            ${opportunity.criteria?.business_stage ? `
-              <div class="rounded-lg bg-white/70 border border-slate-300/60 p-2.5">
-                <div class="text-[10px] uppercase text-slate-500 mb-0.5">Stage</div>
-                <div class="text-xs font-semibold text-slate-900">${opportunity.criteria.business_stage.charAt(0).toUpperCase() + opportunity.criteria.business_stage.slice(1)}</div>
-              </div>
-            ` : ""}
           </div>
 
           <div class="rounded-xl bg-emerald-50 border border-emerald-200 p-4 mb-3">
@@ -831,76 +726,10 @@
       container.appendChild(card);
     }
 
-    async function getRealAIMatchAnalysis(profile, opportunity) {
-      const prompt = `
-CRITICAL: You MUST respond with ONLY valid JSON. No other text.
-
-Analyze the compatibility between this business and funding opportunity. Provide a JSON response with:
-- matchScore (0-100)
-- matchReasoning (string explaining key compatibility factors)
-- aiSuggestions (array of 3 application tips)
-
-BUSINESS PROFILE:
-- Name: ${profile.business_name}
-- Sector: ${profile.business_sector}
-- Region: ${profile.region}
-- Years in Operation: ${profile.years_in_operation}
-- Employees: ${profile.number_of_employees}
-- Business Stage: ${profile.criteria?.business_stage || "Not specified"}
-- Funding Need: R${profile.criteria?.funding_amount_min || "Not specified"} - R${profile.criteria?.funding_amount_max || "Open"}
-- Project: ${profile.project_description}
-
-FUNDING OPPORTUNITY:
-- Name: ${opportunity.name}
-- Description: ${opportunity.description}
-- Sector Focus: ${opportunity.criteria?.sector || "Any"}
-- Region Focus: ${opportunity.criteria?.region || "National"}
-- Business Stage: ${opportunity.criteria?.business_stage || "Any"}
-- Funding Range: ${opportunity.criteria?.amount_range || "Not specified"}
-- Requirements: ${opportunity.criteria?.requirements || "None"}
-
-Consider sector alignment, regional fit, business stage compatibility, funding amount appropriateness, and overall strategic fit. Be realistic but encouraging.
-
-RESPONSE FORMAT (JSON ONLY):
-{
-  "matchScore": 85,
-  "matchReasoning": "Strong sector alignment and regional fit...",
-  "aiSuggestions": ["Tip 1", "Tip 2", "Tip 3"]
-}
-`;
-
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0.3, maxOutputTokens: 800 },
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`AI API request failed: ${response.status} - ${errorText}`);
-      }
-
-      const data = await response.json();
-      if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-        throw new Error("Invalid AI response structure");
-      }
-
-      const aiResponse = data.candidates[0].content.parts[0].text;
-      const cleanedResponse = aiResponse.replace(/```json\s*|\s*```/g, "").trim();
-      const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) throw new Error("No valid JSON in AI response");
-
-      const result = JSON.parse(jsonMatch[0]);
-      if (typeof result.matchScore !== "number" || typeof result.matchReasoning !== "string" || !Array.isArray(result.aiSuggestions)) {
-        throw new Error("Invalid AI response format - missing required fields");
-      }
-      return result;
+    function getMatchLevel(score) {
+      if (score >= 75) return { level: "high", label: "Perfect AI Match" };
+      if (score >= 50) return { level: "medium", label: "Strong AI Match" };
+      return { level: "low", label: "Good AI Match" };
     }
 
     function getFundingTypeBadge(opportunity) {
@@ -990,15 +819,10 @@ RESPONSE FORMAT (JSON ONLY):
               <i class="fas fa-robot text-2xl"></i>
             </div>
             <h3 class="font-display font-bold text-lg text-slate-900 mb-2">🤖 No AI matches found</h3>
-            <p class="text-sm text-slate-700 max-w-md mx-auto mb-5">Our real AI analysis couldn't find strong matches for your business criteria. Try broadening your profile.</p>
-            <div class="flex flex-wrap gap-2 justify-center">
-              <a href="smme-profile.html" class="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-sm font-semibold shadow-md shadow-brand-600/20 transition-colors">
-                <i class="fas fa-edit mr-1.5"></i>Update Business Criteria
-              </a>
-              <button onclick="location.reload()" class="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 text-sm font-semibold transition-colors">
-                <i class="fas fa-robot mr-1.5"></i>Retry AI Analysis
-              </button>
-            </div>
+            <p class="text-sm text-slate-700 max-w-md mx-auto mb-5">Our AI analysis couldn't find strong matches for your business criteria. Try broadening your profile.</p>
+            <a href="smme-profile.html" class="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-sm font-semibold shadow-md shadow-brand-600/20 transition-colors">
+              <i class="fas fa-edit mr-1.5"></i>Update Business Criteria
+            </a>
           </div>
         `;
         return;
@@ -1006,15 +830,19 @@ RESPONSE FORMAT (JSON ONLY):
 
       const wrapper = document.createElement("div");
       wrapper.className = "space-y-5";
-      opportunitiesContainer.innerHTML = "";
-      opportunitiesContainer.appendChild(wrapper);
+      
+      // Keep the progress container intact at the top
+      const progress = document.getElementById("progressContainer");
+      if (progress) {
+        opportunitiesContainer.innerHTML = "";
+        opportunitiesContainer.appendChild(progress);
+        opportunitiesContainer.appendChild(wrapper);
+      } else {
+        opportunitiesContainer.innerHTML = "";
+        opportunitiesContainer.appendChild(wrapper);
+      }
+      
       opportunities.forEach((opp) => displaySingleOpportunity(opp, wrapper));
-    }
-
-    function getMatchLevel(score) {
-      if (score >= 75) return { level: "high", label: "Perfect AI Match" };
-      if (score >= 50) return { level: "medium", label: "Strong AI Match" };
-      return { level: "low", label: "Good AI Match" };
     }
 
     function viewDetails(opportunityId) {
@@ -1163,7 +991,7 @@ RESPONSE FORMAT (JSON ONLY):
       for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
           const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
