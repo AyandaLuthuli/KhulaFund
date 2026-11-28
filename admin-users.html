@@ -1,943 +1,511 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FundFinder - User Management</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <style>
-      /* CSS Variables for Orange Design System */
-      :root {
-        --color-white: #ffffff;
-        --color-orange: #ff8c42; /* Softer orange */
-        --color-orange-medium: #ffa366;
-        --color-orange-light: #ffc8a8;
-        --color-orange-very-light: #ffe8db;
-        --color-dark: #333333;
-        --color-gray: #666666;
-        --color-gray-light: #f5f5f5;
-        --color-gray-border: #e0e0e0;
-        --font-heading: "Archivo Black", sans-serif;
-        --font-body: "Archivo", sans-serif;
-        --border-radius-sm: 4px;
-        --border-radius-md: 8px;
-        --border-radius-lg: 12px;
-        --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
-        --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
-        --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
-        --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-      }
-
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      body {
-        font-family: var(--font-body);
-        line-height: 1.6;
-        color: var(--color-dark);
-        background: var(--color-gray-light);
-      }
-
-      /* Header */
-      .header {
-        background: var(--color-white);
-        padding: 1rem 2rem;
-        border-bottom: 2px solid var(--color-orange);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: var(--shadow-sm);
-      }
-
-      .logo {
-        font-weight: 700;
-        font-size: 1.8rem;
-        color: var(--color-orange);
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-family: var(--font-heading);
-      }
-
-      .nav-links {
-        display: flex;
-        gap: 2rem;
-        align-items: center;
-      }
-
-      .nav-links a {
-        color: var(--color-dark);
-        text-decoration: none;
-        font-weight: 600;
-        padding: 0.5rem 1rem;
-        border-radius: var(--border-radius-md);
-        transition: var(--transition);
-        position: relative;
-      }
-
-      .nav-links a:hover,
-      .nav-links a.active {
-        color: var(--color-orange);
-      }
-
-      .nav-links a.active::after {
-        content: "";
-        position: absolute;
-        bottom: -2px;
-        left: 1rem;
-        right: 1rem;
-        height: 3px;
-        background: var(--color-orange);
-        border-radius: var(--border-radius-sm);
-      }
-
-      .user-menu {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-      }
-
-      .user-info {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-
-      .user-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: var(--color-orange);
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-      }
-
-      .user-details {
-        display: flex;
-        flex-direction: column;
-      }
-
-      .user-name {
-        font-weight: 600;
-      }
-
-      .user-role {
-        font-size: 0.8rem;
-        color: var(--color-gray);
-      }
-
-      .logout-btn {
-        background: #ff4757;
-        color: white;
-        border: none;
-        padding: 0.6rem 1.2rem;
-        border-radius: var(--border-radius-md);
-        cursor: pointer;
-        font-weight: 600;
-        transition: var(--transition);
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-
-      .logout-btn:hover {
-        background: #ff3742;
-        transform: translateY(-2px);
-      }
-
-      /* Main Content */
-      .main-content {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 2rem;
-      }
-
-      .access-denied {
-        text-align: center;
-        padding: 4rem 2rem;
-        background: var(--color-white);
-        border-radius: var(--border-radius-lg);
-        box-shadow: var(--shadow-md);
-      }
-
-      .access-denied h2 {
-        color: #dc2626;
-        margin-bottom: 1rem;
-        font-family: var(--font-heading);
-      }
-
-      .access-denied p {
-        color: var(--color-gray);
-        margin-bottom: 2rem;
-      }
-
-      .page-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 2rem;
-      }
-
-      .page-header h1 {
-        color: var(--color-orange);
-        font-size: 2.5rem;
-        font-family: var(--font-heading);
-      }
-
-      /* Filters */
-      .filters {
-        background: var(--color-white);
-        padding: 1.5rem;
-        border-radius: var(--border-radius-lg);
-        box-shadow: var(--shadow-md);
-        margin-bottom: 2rem;
-        display: flex;
-        gap: 1rem;
-        flex-wrap: wrap;
-        border-left: 4px solid var(--color-orange);
-      }
-
-      .filter-group {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-      }
-
-      .filter-group label {
-        font-weight: 600;
-        color: var(--color-dark);
-        font-size: 0.9rem;
-      }
-
-      select,
-      input {
-        padding: 0.75rem;
-        border: 2px solid var(--color-gray-border);
-        border-radius: var(--border-radius-md);
-        background: var(--color-gray-light);
-        font-size: 0.9rem;
-        font-family: var(--font-body);
-        transition: var(--transition);
-      }
-
-      select:focus,
-      input:focus {
-        outline: none;
-        border-color: var(--color-orange);
-        background: var(--color-white);
-        box-shadow: 0 0 0 3px rgba(255, 140, 66, 0.1);
-      }
-
-      .btn {
-        padding: 0.75rem 1.5rem;
-        border: none;
-        border-radius: var(--border-radius-md);
-        font-weight: 600;
-        cursor: pointer;
-        transition: var(--transition);
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-family: var(--font-body);
-      }
-
-      .btn-primary {
-        background: var(--color-orange);
-        color: white;
-      }
-
-      .btn-primary:hover {
-        background: var(--color-orange-medium);
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-sm);
-      }
-
-      .btn-secondary {
-        background: var(--color-gray);
-        color: white;
-      }
-
-      .btn-secondary:hover {
-        background: #5a6268;
-        transform: translateY(-2px);
-      }
-
-      .btn-success {
-        background: #10b981;
-        color: white;
-      }
-
-      .btn-success:hover {
-        background: #059669;
-        transform: translateY(-2px);
-      }
-
-      .btn-danger {
-        background: #ef4444;
-        color: white;
-      }
-
-      .btn-danger:hover {
-        background: #dc2626;
-        transform: translateY(-2px);
-      }
-
-      .btn-small {
-        padding: 0.5rem 1rem;
-        font-size: 0.8rem;
-      }
-
-      /* Users Table */
-      .users-table-container {
-        background: var(--color-white);
-        border-radius: var(--border-radius-lg);
-        box-shadow: var(--shadow-md);
-        overflow: hidden;
-        transition: var(--transition);
-      }
-
-      .users-table-container:hover {
-        box-shadow: var(--shadow-lg);
-      }
-
-      .table-header {
-        padding: 1.5rem;
-        border-bottom: 1px solid var(--color-gray-border);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: var(--color-orange-very-light);
-      }
-
-      .table-header h3 {
-        color: var(--color-dark);
-        font-family: var(--font-heading);
-      }
-
-      .users-table {
-        width: 100%;
-        border-collapse: collapse;
-      }
-
-      .users-table th,
-      .users-table td {
-        padding: 1rem;
-        text-align: left;
-        border-bottom: 1px solid var(--color-gray-border);
-      }
-
-      .users-table th {
-        background: var(--color-orange-very-light);
-        font-weight: 600;
-        color: var(--color-orange);
-        font-family: var(--font-heading);
-      }
-
-      .users-table tr:hover {
-        background: var(--color-gray-light);
-      }
-
-      .status-badge {
-        padding: 0.25rem 0.75rem;
-        border-radius: 15px;
-        font-size: 0.8rem;
-        font-weight: 600;
-      }
-
-      .status-active {
-        background: #e6f7ee;
-        color: #0a7b3e;
-      }
-
-      .status-pending {
-        background: #fff3cd;
-        color: #856404;
-      }
-
-      .status-inactive {
-        background: #fde8e8;
-        color: #c53030;
-      }
-
-      .role-badge {
-        padding: 0.25rem 0.75rem;
-        border-radius: 15px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        background: var(--color-orange-very-light);
-        color: var(--color-orange);
-      }
-
-      .actions {
-        display: flex;
-        gap: 0.5rem;
-      }
-
-      .loading {
-        text-align: center;
-        padding: 3rem;
-      }
-
-      .spinner {
-        border: 4px solid rgba(0, 0, 0, 0.1);
-        border-left-color: var(--color-orange);
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        animation: spin 1s linear infinite;
-        margin: 0 auto 1rem;
-      }
-
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Management — FundFinder Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#fff3e0', 100: '#ffe0b2', 200: '#ffcc80', 300: '#ffb74d',
+              400: '#ffa726', 500: '#ff6d00', 600: '#e65100', 700: '#bf360c',
+              800: '#9a3412', 900: '#7c2d12',
+            },
+            slate: { 850: '#151e32', 900: '#0f172a', 950: '#090d16' }
+          },
+          boxShadow: {
+            'glass': '0 4px 30px rgba(15, 23, 42, 0.05)',
+            'elevated': '0 20px 40px -15px rgba(15, 23, 42, 0.09)',
+          }
         }
       }
+    };
+  </script>
+  <style>
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #f8fafc; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-      .no-data {
-        text-align: center;
-        padding: 3rem;
-        color: var(--color-gray);
-      }
+    .spinner {
+      border: 3px solid rgba(230, 81, 0, 0.15);
+      border-left-color: #e65100;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-900 font-sans antialiased selection:bg-brand-600 selection:text-white min-h-screen flex flex-col">
 
-      .no-data h3 {
-        color: var(--color-dark);
-        margin-bottom: 1rem;
-        font-family: var(--font-heading);
-      }
+  <!-- Sticky Header -->
+  <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-glass">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-20">
 
-      @media (max-width: 768px) {
-        .header {
-          flex-direction: column;
-          gap: 1rem;
-          padding: 1rem;
-        }
-
-        .nav-links {
-          gap: 0.5rem;
-        }
-
-        .nav-links a {
-          padding: 0.5rem;
-          font-size: 0.9rem;
-        }
-
-        .main-content {
-          padding: 1rem;
-        }
-
-        .filters {
-          flex-direction: column;
-        }
-
-        .users-table {
-          display: block;
-          overflow-x: auto;
-        }
-
-        .page-header {
-          flex-direction: column;
-          gap: 1rem;
-          text-align: center;
-        }
-
-        .page-header h1 {
-          font-size: 2rem;
-        }
-
-        .table-header {
-          flex-direction: column;
-          gap: 1rem;
-          text-align: center;
-        }
-
-        .actions {
-          flex-wrap: wrap;
-          justify-content: center;
-        }
-
-        .btn {
-          padding: 0.875rem 1.25rem;
-          font-size: 0.9rem;
-        }
-      }
-
-      @media (max-width: 480px) {
-        .users-table th,
-        .users-table td {
-          padding: 0.75rem 0.5rem;
-          font-size: 0.8rem;
-        }
-
-        .status-badge,
-        .role-badge {
-          font-size: 0.7rem;
-          padding: 0.2rem 0.5rem;
-        }
-
-        .filters {
-          padding: 1rem;
-        }
-
-        .filter-group {
-          width: 100%;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <!-- Header -->
-    <div class="header">
-      <div class="logo">
-        <i class="fas fa-hand-holding-usd"></i>
-        FundFinder Admin
-      </div>
-      <div class="nav-links">
-        <a href="admin-dashboard.html">Dashboard</a>
-        <a href="admin-users.html" class="active">User Management</a>
-        <a href="admin-reports.html">Reports & Analytics</a>
-        <a href="admin-funding.html">Funding Management</a>
-      </div>
-      <div class="user-menu">
-        <div class="user-info">
-          <div class="user-avatar" id="user-avatar">A</div>
-          <div class="user-details">
-            <div class="user-name" id="userName">Admin</div>
-            <div class="user-role">Administrator</div>
+        <a href="admin-dashboard.html" class="flex items-center gap-2.5 group">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-600 to-brand-500 flex items-center justify-center text-white shadow-md shadow-brand-600/25 group-hover:scale-105 transition-transform">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+            </svg>
           </div>
-        </div>
-        <button class="logout-btn" onclick="logout()">
-          <i class="fas fa-sign-out-alt"></i> Logout
-        </button>
-      </div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="main-content">
-      <div id="accessDenied" class="access-denied" style="display: none">
-        <h2>Access Denied</h2>
-        <p>You need administrator privileges to access this page.</p>
-        <div style="display: flex; gap: 1rem; justify-content: center">
-          <a href="index.html" class="btn btn-primary">Go to Main Site</a>
-          <a href="login.html" class="btn btn-secondary">Login as Admin</a>
-        </div>
-      </div>
-
-      <div id="adminContent" style="display: none">
-        <div class="page-header">
-          <h1>User Management</h1>
-          <div class="table-stats" id="tableStats">Loading...</div>
-        </div>
-
-        <!-- Filters -->
-        <div class="filters">
-          <div class="filter-group">
-            <label for="roleFilter">Role</label>
-            <select id="roleFilter" onchange="filterUsers()">
-              <option value="all">All Roles</option>
-              <option value="SMME">SMME</option>
-              <option value="FUNDER">Funder</option>
-              <option value="ADMIN">Admin</option>
-            </select>
+          <div class="flex flex-col">
+            <div class="flex items-center gap-1.5">
+              <span class="font-display font-extrabold text-xl tracking-tight text-slate-900">FundFinder</span>
+              <span class="w-2 h-2 rounded-full bg-brand-600"></span>
+            </div>
+            <span class="text-[10px] uppercase tracking-widest font-bold text-brand-600 -mt-1">Admin Portal</span>
           </div>
+        </a>
 
-          <div class="filter-group">
-            <label for="statusFilter">Status</label>
-            <select id="statusFilter" onchange="filterUsers()">
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="pending">Pending</option>
-              <option value="inactive">Inactive</option>
-            </select>
+        <nav class="hidden lg:flex items-center gap-7">
+          <a href="admin-dashboard.html" class="text-sm font-medium text-slate-600 hover:text-brand-600 transition-colors">Dashboard</a>
+          <a href="admin-users.html" class="text-sm font-semibold text-brand-600 relative pb-1">
+            User Management
+            <span class="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-600 rounded-full"></span>
+          </a>
+          <a href="admin-reports.html" class="text-sm font-medium text-slate-600 hover:text-brand-600 transition-colors">Reports &amp; Analytics</a>
+          <a href="admin-funding.html" class="text-sm font-medium text-slate-600 hover:text-brand-600 transition-colors">Funding Management</a>
+        </nav>
+
+        <div class="hidden lg:flex items-center gap-3">
+          <div class="flex items-center gap-2.5 pl-3 pr-4 py-1.5 rounded-xl bg-slate-50 border border-slate-200">
+            <div id="user-avatar" class="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-600 to-brand-500 text-white flex items-center justify-center font-bold text-sm shadow-sm">A</div>
+            <div class="flex flex-col">
+              <div id="userName" class="text-xs font-semibold text-slate-900 leading-tight">Admin</div>
+              <div class="text-[10px] text-slate-500">System Administrator</div>
+            </div>
           </div>
-
-          <div class="filter-group">
-            <label for="searchFilter">Search</label>
-            <input
-              type="text"
-              id="searchFilter"
-              placeholder="Search by email..."
-              oninput="filterUsers()"
-            />
-          </div>
-
-          <div style="flex: 1"></div>
-
-          <button class="btn btn-primary" onclick="exportUsers()">
-            <i class="fas fa-download"></i> Export Users
+          <button onclick="logout()" class="px-4 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-sm font-semibold transition-colors flex items-center gap-2">
+            <i class="fas fa-sign-out-alt text-xs"></i>
+            <span>Logout</span>
           </button>
         </div>
 
-        <!-- Users Table -->
-        <div class="users-table-container">
-          <div class="table-header">
-            <h3>System Users</h3>
-            <div class="table-actions">
-              <button
-                class="btn btn-success btn-small"
-                onclick="approveAllPending()"
-              >
-                <i class="fas fa-check"></i> Approve All Pending
-              </button>
-            </div>
-          </div>
-
-          <div id="usersTable">
-            <div class="loading">
-              <div class="spinner"></div>
-              <p>Loading users...</p>
-            </div>
-          </div>
+        <div class="lg:hidden flex items-center">
+          <button id="mobile-menu-btn" aria-label="Toggle Menu" class="p-2.5 rounded-xl text-slate-700 hover:bg-slate-100 transition-colors">
+            <i class="fas fa-bars text-xl" id="mobile-menu-icon"></i>
+          </button>
         </div>
       </div>
     </div>
 
-    <script>
-      const SUPABASE_URL = "https://ovvvwbtexnbxzacizokr.supabase.co";
-      const SUPABASE_ANON_KEY =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dnZ3YnRleG5ieHphY2l6b2tyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1ODQ5OTEsImV4cCI6MjA3OTE2MDk5MX0.Ii21cw1Iyops8Zo784P-25NKz2m-TCyJ2zWwI4V1kcE";
+    <div id="mobile-menu" class="hidden lg:hidden bg-white border-b border-slate-200 px-4 pt-2 pb-6 space-y-2 shadow-xl">
+      <a href="admin-dashboard.html" class="block px-3 py-2.5 rounded-xl text-base font-medium text-slate-700 hover:bg-brand-50 hover:text-brand-600">Dashboard</a>
+      <a href="admin-users.html" class="block px-3 py-2.5 rounded-xl text-base font-semibold text-brand-600 bg-brand-50">User Management</a>
+      <a href="admin-reports.html" class="block px-3 py-2.5 rounded-xl text-base font-medium text-slate-700 hover:bg-brand-50 hover:text-brand-600">Reports &amp; Analytics</a>
+      <a href="admin-funding.html" class="block px-3 py-2.5 rounded-xl text-base font-medium text-slate-700 hover:bg-brand-50 hover:text-brand-600">Funding Management</a>
+      <div class="pt-3 border-t border-slate-100 flex flex-col gap-2.5">
+        <div class="flex items-center gap-2.5 px-3 py-2">
+          <div id="user-avatar-mobile" class="w-9 h-9 rounded-lg bg-gradient-to-br from-brand-600 to-brand-500 text-white flex items-center justify-center font-bold text-sm">A</div>
+          <div class="flex flex-col">
+            <div id="userName-mobile" class="text-sm font-semibold text-slate-900 leading-tight">Admin</div>
+            <div class="text-[10px] text-slate-500">System Administrator</div>
+          </div>
+        </div>
+        <button onclick="logout()" class="w-full py-2.5 text-center text-sm font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-xl">Logout</button>
+      </div>
+    </div>
+  </header>
 
-      const supabaseClient = window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_ANON_KEY
-      );
-      let allUsers = [];
+  <main class="flex-1">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
-      // Check admin authentication using main user session
-      document.addEventListener("DOMContentLoaded", async () => {
-        await checkAdminAuth();
-      });
+      <!-- Access Denied -->
+      <div id="accessDenied" class="hidden rounded-2xl bg-slate-200/60 backdrop-blur-sm border border-rose-300/70 shadow-sm p-10 text-center">
+        <div class="w-16 h-16 rounded-2xl bg-rose-600 text-white flex items-center justify-center mx-auto mb-4 shadow-sm">
+          <i class="fas fa-shield-halved text-2xl"></i>
+        </div>
+        <h2 class="font-display font-extrabold text-xl text-slate-900 mb-2">Access Denied</h2>
+        <p class="text-sm text-slate-700 mb-6">You need administrator privileges to access this page.</p>
+        <div class="flex flex-wrap gap-3 justify-center">
+          <a href="index.html" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-sm font-semibold shadow-md shadow-brand-600/20 transition-colors">
+            <i class="fas fa-home mr-1.5"></i>Go to Main Site
+          </a>
+          <a href="login.html" class="px-5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 text-sm font-semibold transition-colors">
+            <i class="fas fa-sign-in-alt mr-1.5"></i>Login as Admin
+          </a>
+        </div>
+      </div>
 
-      async function checkAdminAuth() {
-        const userData = localStorage.getItem("fundfinder_user");
+      <!-- Admin Content -->
+      <div id="adminContent" class="hidden space-y-6">
 
-        if (!userData) {
-          showAccessDenied();
-          return;
-        }
+        <!-- Page Header -->
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-widest text-brand-700">Administration</span>
+            <h1 class="font-display font-extrabold text-3xl sm:text-4xl text-slate-900 mt-2">User management</h1>
+          </div>
+          <div id="tableStats" class="text-xs font-medium text-slate-600 px-4 py-2 rounded-xl bg-white/80 border border-slate-300/60 shadow-sm">Loading...</div>
+        </div>
 
-        const user = JSON.parse(userData);
-
-        // Check if user is ADMIN and active
-        const { data: userRecord, error } = await supabaseClient
-          .from("users")
-          .select("*")
-          .eq("id", user.id)
-          .single();
-
-        if (
-          error ||
-          !userRecord ||
-          userRecord.role !== "ADMIN" ||
-          !userRecord.active
-        ) {
-          showAccessDenied();
-          return;
-        }
-
-        // User is valid admin, show admin content
-        document.getElementById("userName").textContent = user.email;
-        document.getElementById("user-avatar").textContent = user.email
-          .charAt(0)
-          .toUpperCase();
-        document.getElementById("adminContent").style.display = "block";
-
-        await loadUsers();
-      }
-
-      function showAccessDenied() {
-        document.getElementById("accessDenied").style.display = "block";
-        document.getElementById("adminContent").style.display = "none";
-      }
-
-      async function loadUsers() {
-        try {
-          const { data: users, error } = await supabaseClient
-            .from("users")
-            .select("*")
-            .order("created_at", { ascending: false });
-
-          if (error) throw error;
-
-          allUsers = users;
-          displayUsers(users);
-        } catch (error) {
-          console.error("Error loading users:", error);
-          document.getElementById("usersTable").innerHTML = `
-            <div class="no-data">
-              <p>Error loading users. Please try again.</p>
+        <!-- Filters -->
+        <div class="rounded-2xl bg-slate-200/60 backdrop-blur-sm border border-slate-300/60 shadow-sm p-5">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <div>
+              <label for="roleFilter" class="block text-xs font-semibold text-slate-800 mb-1.5">Role</label>
+              <select id="roleFilter" onchange="filterUsers()"
+                class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white/80 text-sm text-slate-900 focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100 transition">
+                <option value="all">All Roles</option>
+                <option value="SMME">SMME</option>
+                <option value="FUNDER">Funder</option>
+                <option value="ADMIN">Admin</option>
+              </select>
             </div>
-          `;
-        }
+            <div>
+              <label for="statusFilter" class="block text-xs font-semibold text-slate-800 mb-1.5">Status</label>
+              <select id="statusFilter" onchange="filterUsers()"
+                class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white/80 text-sm text-slate-900 focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100 transition">
+                <option value="all">All Status</option>
+                <option value="active">Active</option>
+                <option value="pending">Pending</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+            <div>
+              <label for="searchFilter" class="block text-xs font-semibold text-slate-800 mb-1.5">Search</label>
+              <input type="text" id="searchFilter" placeholder="Search by email..." oninput="filterUsers()"
+                class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white/80 text-sm text-slate-900 focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100 transition" />
+            </div>
+            <div class="flex md:justify-end">
+              <button onclick="exportUsers()" class="w-full md:w-auto px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-sm font-semibold shadow-md shadow-brand-600/20 transition-all flex items-center justify-center gap-2">
+                <i class="fas fa-download text-xs"></i>
+                Export Users
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Users Table Container -->
+        <div class="rounded-2xl bg-slate-200/60 backdrop-blur-sm border border-slate-300/60 shadow-sm overflow-hidden">
+          <div class="px-5 sm:px-6 py-4 border-b border-slate-300/60 flex flex-wrap items-center justify-between gap-3">
+            <h3 class="font-display font-bold text-base text-slate-900">System Users</h3>
+            <button onclick="approveAllPending()" class="px-4 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-semibold transition-colors flex items-center gap-1.5">
+              <i class="fas fa-check text-[10px]"></i>
+              Approve All Pending
+            </button>
+          </div>
+          <div id="usersTable" class="overflow-x-auto">
+            <div class="p-10 text-center">
+              <div class="spinner mx-auto mb-3"></div>
+              <p class="text-sm text-slate-700">Loading users...</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // ============================================================
+    // ⚠️ BACKEND CONTRACT — preserved from original
+    // ============================================================
+    const SUPABASE_URL = "https://ovvvwbtexnbxzacizokr.supabase.co";
+    const SUPABASE_ANON_KEY =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dnZ3YnRleG5ieHphY2l6b2tyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1ODQ5OTEsImV4cCI6MjA3OTE2MDk5MX0.Ii21cw1Iyops8Zo784P-25NKz2m-TCyJ2zWwI4V1kcE";
+
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    let allUsers = [];
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      await checkAdminAuth();
+      initMobileMenu();
+    });
+
+    async function checkAdminAuth() {
+      const userData = localStorage.getItem("fundfinder_user");
+      if (!userData) { showAccessDenied(); return; }
+      const user = JSON.parse(userData);
+
+      const { data: userRecord, error } = await supabaseClient
+        .from("users").select("*").eq("id", user.id).single();
+
+      if (error || !userRecord || userRecord.role !== "ADMIN" || !userRecord.active) {
+        showAccessDenied();
+        return;
       }
 
-      function displayUsers(users) {
-        const tableStats = document.getElementById("tableStats");
-        const activeCount = users.filter((u) => u.active).length;
-        const pendingCount = users.filter((u) => !u.active).length;
+      const username = user.email;
+      const initial = user.email.charAt(0).toUpperCase();
 
-        tableStats.innerHTML = `
-          Showing ${users.length} users (${activeCount} active, ${pendingCount} pending)
+      document.getElementById("userName").textContent = username;
+      document.getElementById("user-avatar").textContent = initial;
+      const unameMobile = document.getElementById("userName-mobile");
+      const uavatarMobile = document.getElementById("user-avatar-mobile");
+      if (unameMobile) unameMobile.textContent = username;
+      if (uavatarMobile) uavatarMobile.textContent = initial;
+
+      document.getElementById("adminContent").classList.remove("hidden");
+
+      await loadUsers();
+    }
+
+    function showAccessDenied() {
+      document.getElementById("accessDenied").classList.remove("hidden");
+      document.getElementById("adminContent").classList.add("hidden");
+    }
+
+    async function loadUsers() {
+      try {
+        const { data: users, error } = await supabaseClient
+          .from("users").select("*").order("created_at", { ascending: false });
+
+        if (error) throw error;
+
+        allUsers = users;
+        displayUsers(users);
+      } catch (error) {
+        console.error("Error loading users:", error);
+        document.getElementById("usersTable").innerHTML = `
+          <div class="p-10 text-center">
+            <div class="w-16 h-16 rounded-2xl bg-rose-600 text-white flex items-center justify-center mx-auto mb-4 shadow-sm">
+              <i class="fas fa-exclamation-triangle text-2xl"></i>
+            </div>
+            <p class="text-sm font-semibold text-slate-800">Error loading users. Please try again.</p>
+          </div>
         `;
+      }
+    }
 
-        if (users.length === 0) {
-          document.getElementById("usersTable").innerHTML = `
-            <div class="no-data">
-              <p>No users found matching your criteria.</p>
+    function getRoleStyle(role) {
+      const map = {
+        SMME: "bg-brand-100 text-brand-800 border-brand-300",
+        FUNDER: "bg-blue-100 text-blue-800 border-blue-300",
+        ADMIN: "bg-violet-100 text-violet-800 border-violet-300",
+      };
+      return map[role] || "bg-slate-100 text-slate-700 border-slate-300";
+    }
+
+    function displayUsers(users) {
+      const tableStats = document.getElementById("tableStats");
+      const activeCount = users.filter((u) => u.active).length;
+      const pendingCount = users.filter((u) => !u.active).length;
+
+      tableStats.innerHTML = `Showing <strong>${users.length}</strong> users · ${activeCount} active · ${pendingCount} pending`;
+
+      if (users.length === 0) {
+        document.getElementById("usersTable").innerHTML = `
+          <div class="p-10 text-center">
+            <div class="w-16 h-16 rounded-2xl bg-white/70 border border-slate-300/60 flex items-center justify-center text-slate-500 mx-auto mb-4">
+              <i class="fas fa-users text-2xl"></i>
             </div>
-          `;
-          return;
-        }
+            <p class="text-sm font-semibold text-slate-800">No users found matching your criteria.</p>
+          </div>
+        `;
+        return;
+      }
 
-        const usersTable = document.getElementById("usersTable");
-        usersTable.innerHTML = `
-          <table class="users-table">
-            <thead>
-              <tr>
-                <th>User</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th>Last Login</th>
-                <th>Registered</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${users
-                .map(
-                  (user) => `
-                <tr>
-                  <td>
-                    <div style="font-weight: 600;">${user.email}</div>
-                    <div style="font-size: 0.8rem; color: #666;">ID: ${user.id.substring(
-                      0,
-                      8
-                    )}...</div>
+      const usersTable = document.getElementById("usersTable");
+      usersTable.innerHTML = `
+        <table class="w-full">
+          <thead>
+            <tr class="bg-white/40 text-left text-[10px] font-bold uppercase tracking-wider text-slate-600">
+              <th class="px-5 py-3 border-b border-slate-300/60">User</th>
+              <th class="px-5 py-3 border-b border-slate-300/60">Role</th>
+              <th class="px-5 py-3 border-b border-slate-300/60">Status</th>
+              <th class="px-5 py-3 border-b border-slate-300/60">Last Login</th>
+              <th class="px-5 py-3 border-b border-slate-300/60">Registered</th>
+              <th class="px-5 py-3 border-b border-slate-300/60 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${users.map((user) => {
+              const roleStyle = getRoleStyle(user.role);
+              const statusStyle = user.active
+                ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+                : "bg-amber-100 text-amber-800 border-amber-300";
+              return `
+                <tr class="border-b border-slate-300/60 last:border-b-0 hover:bg-white/40 transition-colors">
+                  <td class="px-5 py-4">
+                    <div class="text-sm font-semibold text-slate-900">${escapeHtml(user.email)}</div>
+                    <div class="text-[11px] text-slate-500 mt-0.5">ID: ${escapeHtml(user.id.substring(0, 8))}...</div>
                   </td>
-                  <td>
-                    <span class="role-badge">${user.role}</span>
+                  <td class="px-5 py-4">
+                    <span class="inline-block px-2.5 py-1 rounded-md text-[10px] font-bold border ${roleStyle}">${escapeHtml(user.role)}</span>
                   </td>
-                  <td>
-                    <span class="status-badge ${
-                      user.active ? "status-active" : "status-pending"
-                    }">
+                  <td class="px-5 py-4">
+                    <span class="inline-block px-2.5 py-1 rounded-md text-[10px] font-bold border ${statusStyle}">
                       ${user.active ? "Active" : "Pending Approval"}
                     </span>
                   </td>
-                  <td>
-                    ${
-                      user.last_login
-                        ? new Date(user.last_login).toLocaleDateString()
-                        : "Never"
-                    }
+                  <td class="px-5 py-4 text-xs text-slate-700">
+                    ${user.last_login ? new Date(user.last_login).toLocaleDateString() : "Never"}
                   </td>
-                  <td>
+                  <td class="px-5 py-4 text-xs text-slate-700">
                     ${new Date(user.created_at).toLocaleDateString()}
                   </td>
-                  <td>
-                    <div class="actions">
-                      ${
-                        !user.active
-                          ? `
-                        <button class="btn btn-success btn-small" onclick="approveUser('${user.id}')">
-                          <i class="fas fa-check"></i> Approve
-                        </button>
-                      `
-                          : `
-                        <button class="btn btn-danger btn-small" onclick="deactivateUser('${user.id}')">
-                          <i class="fas fa-times"></i> Deactivate
-                        </button>
-                      `
+                  <td class="px-5 py-4">
+                    <div class="flex flex-wrap gap-1.5 justify-end">
+                      ${!user.active
+                        ? `<button onclick="approveUser('${user.id}')" class="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-semibold transition-colors flex items-center gap-1.5">
+                             <i class="fas fa-check text-[10px]"></i>Approve
+                           </button>`
+                        : `<button onclick="deactivateUser('${user.id}')" class="px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 text-[11px] font-semibold transition-colors flex items-center gap-1.5">
+                             <i class="fas fa-times text-[10px]"></i>Deactivate
+                           </button>`
                       }
-                      <button class="btn btn-primary btn-small" onclick="viewUserDetails('${
-                        user.id
-                      }')">
-                        <i class="fas fa-eye"></i> View
+                      <button onclick="viewUserDetails('${user.id}')" class="px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-[11px] font-semibold shadow-sm transition-colors flex items-center gap-1.5">
+                        <i class="fas fa-eye text-[10px]"></i>View
                       </button>
                     </div>
                   </td>
                 </tr>
-              `
-                )
-                .join("")}
-            </tbody>
-          </table>
-        `;
+              `;
+            }).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function filterUsers() {
+      const roleFilter = document.getElementById("roleFilter").value;
+      const statusFilter = document.getElementById("statusFilter").value;
+      const searchFilter = document.getElementById("searchFilter").value.toLowerCase();
+
+      let filteredUsers = allUsers;
+
+      if (roleFilter !== "all") filteredUsers = filteredUsers.filter((user) => user.role === roleFilter);
+
+      if (statusFilter !== "all") {
+        if (statusFilter === "active") filteredUsers = filteredUsers.filter((user) => user.active);
+        else if (statusFilter === "pending") filteredUsers = filteredUsers.filter((user) => !user.active);
+        else if (statusFilter === "inactive") filteredUsers = filteredUsers.filter((user) => !user.active);
       }
 
-      function filterUsers() {
-        const roleFilter = document.getElementById("roleFilter").value;
-        const statusFilter = document.getElementById("statusFilter").value;
-        const searchFilter = document
-          .getElementById("searchFilter")
-          .value.toLowerCase();
-
-        let filteredUsers = allUsers;
-
-        // Filter by role
-        if (roleFilter !== "all") {
-          filteredUsers = filteredUsers.filter(
-            (user) => user.role === roleFilter
-          );
-        }
-
-        // Filter by status
-        if (statusFilter !== "all") {
-          if (statusFilter === "active") {
-            filteredUsers = filteredUsers.filter((user) => user.active);
-          } else if (statusFilter === "pending") {
-            filteredUsers = filteredUsers.filter((user) => !user.active);
-          } else if (statusFilter === "inactive") {
-            filteredUsers = filteredUsers.filter((user) => !user.active);
-          }
-        }
-
-        // Filter by search
-        if (searchFilter) {
-          filteredUsers = filteredUsers.filter(
-            (user) =>
-              user.email.toLowerCase().includes(searchFilter) ||
-              user.id.toLowerCase().includes(searchFilter)
-          );
-        }
-
-        displayUsers(filteredUsers);
+      if (searchFilter) {
+        filteredUsers = filteredUsers.filter(
+          (user) =>
+            user.email.toLowerCase().includes(searchFilter) ||
+            user.id.toLowerCase().includes(searchFilter)
+        );
       }
 
-      async function approveUser(userId) {
-        if (!confirm("Are you sure you want to approve this user?")) return;
+      displayUsers(filteredUsers);
+    }
 
-        try {
-          const { error } = await supabaseClient
-            .from("users")
-            .update({ active: true })
-            .eq("id", userId);
-
-          if (error) throw error;
-
-          alert("User approved successfully!");
-          await loadUsers(); // Reload the users list
-        } catch (error) {
-          console.error("Error approving user:", error);
-          alert("Error approving user. Please try again.");
-        }
+    async function approveUser(userId) {
+      if (!confirm("Are you sure you want to approve this user?")) return;
+      try {
+        const { error } = await supabaseClient.from("users").update({ active: true }).eq("id", userId);
+        if (error) throw error;
+        alert("User approved successfully!");
+        await loadUsers();
+      } catch (error) {
+        console.error("Error approving user:", error);
+        alert("Error approving user. Please try again.");
       }
+    }
 
-      async function deactivateUser(userId) {
-        if (!confirm("Are you sure you want to deactivate this user?")) return;
-
-        try {
-          const { error } = await supabaseClient
-            .from("users")
-            .update({ active: false })
-            .eq("id", userId);
-
-          if (error) throw error;
-
-          alert("User deactivated successfully!");
-          await loadUsers(); // Reload the users list
-        } catch (error) {
-          console.error("Error deactivating user:", error);
-          alert("Error deactivating user. Please try again.");
-        }
+    async function deactivateUser(userId) {
+      if (!confirm("Are you sure you want to deactivate this user?")) return;
+      try {
+        const { error } = await supabaseClient.from("users").update({ active: false }).eq("id", userId);
+        if (error) throw error;
+        alert("User deactivated successfully!");
+        await loadUsers();
+      } catch (error) {
+        console.error("Error deactivating user:", error);
+        alert("Error deactivating user. Please try again.");
       }
+    }
 
-      async function approveAllPending() {
-        const pendingUsers = allUsers.filter((user) => !user.active);
-        if (pendingUsers.length === 0) {
-          alert("No pending users to approve.");
-          return;
-        }
+    async function approveAllPending() {
+      const pendingUsers = allUsers.filter((user) => !user.active);
+      if (pendingUsers.length === 0) { alert("No pending users to approve."); return; }
+      if (!confirm(`Are you sure you want to approve all ${pendingUsers.length} pending users?`)) return;
 
-        if (
-          !confirm(
-            `Are you sure you want to approve all ${pendingUsers.length} pending users?`
-          )
-        )
-          return;
-
-        try {
-          const { error } = await supabaseClient
-            .from("users")
-            .update({ active: true })
-            .eq("active", false);
-
-          if (error) throw error;
-
-          alert(`Successfully approved ${pendingUsers.length} users!`);
-          await loadUsers(); // Reload the users list
-        } catch (error) {
-          console.error("Error approving all users:", error);
-          alert("Error approving users. Please try again.");
-        }
+      try {
+        const { error } = await supabaseClient.from("users").update({ active: true }).eq("active", false);
+        if (error) throw error;
+        alert(`Successfully approved ${pendingUsers.length} users!`);
+        await loadUsers();
+      } catch (error) {
+        console.error("Error approving all users:", error);
+        alert("Error approving users. Please try again.");
       }
+    }
 
-      function viewUserDetails(userId) {
-        const user = allUsers.find((u) => u.id === userId);
-        if (user) {
-          const details = `
+    function viewUserDetails(userId) {
+      const user = allUsers.find((u) => u.id === userId);
+      if (user) {
+        const details = `
 Email: ${user.email}
 Role: ${user.role}
 Status: ${user.active ? "Active" : "Pending"}
 User ID: ${user.id}
 Registered: ${new Date(user.created_at).toLocaleString()}
-Last Login: ${
-            user.last_login
-              ? new Date(user.last_login).toLocaleString()
-              : "Never"
+Last Login: ${user.last_login ? new Date(user.last_login).toLocaleString() : "Never"}`;
+        alert(details);
+      }
+    }
+
+    function exportUsers() {
+      const headers = ["Email", "Role", "Status", "Last Login", "Registered"];
+      const csvData = allUsers.map((user) => [
+        user.email,
+        user.role,
+        user.active ? "Active" : "Pending",
+        user.last_login ? new Date(user.last_login).toLocaleDateString() : "Never",
+        new Date(user.created_at).toLocaleDateString(),
+      ]);
+      const csvContent = [headers, ...csvData].map((row) => row.map((field) => `"${field}"`).join(",")).join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `fundfinder-users-${new Date().toISOString().split("T")[0]}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    }
+
+    function escapeHtml(s) {
+      if (s === null || s === undefined) return "";
+      return String(s)
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    function logout() {
+      localStorage.removeItem("fundfinder_user");
+      window.location.href = "index.html";
+    }
+
+    function initMobileMenu() {
+      const btn = document.getElementById("mobile-menu-btn");
+      const menu = document.getElementById("mobile-menu");
+      const icon = document.getElementById("mobile-menu-icon");
+      if (btn) {
+        btn.addEventListener("click", () => {
+          const hidden = menu.classList.contains("hidden");
+          if (hidden) {
+            menu.classList.remove("hidden");
+            icon.classList.remove("fa-bars");
+            icon.classList.add("fa-times");
+          } else {
+            menu.classList.add("hidden");
+            icon.classList.remove("fa-times");
+            icon.classList.add("fa-bars");
           }
-          `;
-          alert(details);
-        }
+        });
       }
-
-      function exportUsers() {
-        // Simple CSV export
-        const headers = ["Email", "Role", "Status", "Last Login", "Registered"];
-        const csvData = allUsers.map((user) => [
-          user.email,
-          user.role,
-          user.active ? "Active" : "Pending",
-          user.last_login
-            ? new Date(user.last_login).toLocaleDateString()
-            : "Never",
-          new Date(user.created_at).toLocaleDateString(),
-        ]);
-
-        const csvContent = [headers, ...csvData]
-          .map((row) => row.map((field) => `"${field}"`).join(","))
-          .join("\n");
-
-        const blob = new Blob([csvContent], { type: "text/csv" });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `fundfinder-users-${
-          new Date().toISOString().split("T")[0]
-        }.csv`;
-        a.click();
-        window.URL.revokeObjectURL(url);
-      }
-
-      function logout() {
-        localStorage.removeItem("fundfinder_user");
-        window.location.href = "index.html";
-      }
-    </script>
-  </body>
+    }
+  </script>
+</body>
 </html>

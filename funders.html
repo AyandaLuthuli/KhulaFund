@@ -51,7 +51,7 @@
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-900 font-sans antialiased selection:bg-brand-600 selection:text-white min-h-screen flex flex-col">
+<body class="bg-slate-100 text-slate-900 font-sans antialiased selection:bg-brand-600 selection:text-white min-h-screen flex flex-col">
 
   <!-- Sticky Navbar -->
   <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-glass">
@@ -116,7 +116,7 @@
         <h1 class="font-display font-extrabold text-4xl sm:text-5xl lg:text-6xl tracking-tight text-slate-900 leading-[1.1] mb-5 max-w-3xl mx-auto">
           Find your perfect <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-brand-500">funding match</span>
         </h1>
-        <p class="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
+        <p class="text-base sm:text-lg text-slate-700 max-w-2xl mx-auto leading-relaxed">
           Discover live grants, seed capital and growth finance from South African youth grant bodies, DFIs, and corporate ESD funds. No login required to browse.
         </p>
       </div>
@@ -128,7 +128,7 @@
       <!-- Loading -->
       <div id="loadingState" class="flex flex-col items-center justify-center py-20">
         <div class="spinner mb-3"></div>
-        <p class="text-sm text-slate-500">Loading funding opportunities...</p>
+        <p class="text-sm text-slate-600">Loading funding opportunities...</p>
       </div>
 
       <!-- Grid -->
@@ -232,12 +232,12 @@
 
       if (fundingList.length === 0) {
         opportunitiesGrid.innerHTML = `
-          <div class="col-span-full flex flex-col items-center text-center py-20 bg-white rounded-2xl border border-slate-200">
-            <div class="w-16 h-16 rounded-2xl bg-brand-50 border border-brand-100 flex items-center justify-center text-brand-600 mb-4">
+          <div class="col-span-full flex flex-col items-center text-center py-20 rounded-2xl bg-slate-200/60 backdrop-blur-sm border border-slate-300/60 shadow-sm">
+            <div class="w-16 h-16 rounded-2xl bg-brand-600 text-white flex items-center justify-center mb-4 shadow-sm">
               <i class="fas fa-search text-2xl"></i>
             </div>
             <h3 class="font-display font-bold text-lg text-slate-900 mb-1">No funding opportunities yet</h3>
-            <p class="text-sm text-slate-500 max-w-sm">Check back soon — new youth grants and SMME funding are added regularly.</p>
+            <p class="text-sm text-slate-700 max-w-sm">Check back soon — new youth grants and SMME funding are added regularly.</p>
           </div>
         `;
         opportunitiesGrid.classList.remove("hidden");
@@ -255,7 +255,7 @@
 
     function createOpportunityCard(opportunity) {
       const card = document.createElement("div");
-      card.className = "bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-elevated hover:border-brand-300 transition-all duration-300 flex flex-col overflow-hidden";
+      card.className = "bg-slate-200/60 backdrop-blur-sm rounded-2xl border border-slate-300/60 shadow-sm hover:shadow-elevated hover:border-brand-400 transition-all duration-300 flex flex-col overflow-hidden";
 
       const criteria = opportunity.criteria || {};
       const amount = criteria.amount_range || "Contact for details";
@@ -275,48 +275,47 @@
       const funderName =
         opportunity.users?.name || opportunity.users?.email || "Unknown Funder";
 
-      // Extract a headline number out of the amount string, if present
       const amountHeadline = amount;
 
       card.innerHTML = `
-        <div class="p-6 border-b border-slate-100">
+        <div class="p-6 border-b border-slate-300/60">
           <div class="flex items-start justify-between gap-3 mb-3">
             <div class="flex-1 min-w-0">
-              <div class="font-display font-extrabold text-lg text-brand-600 leading-tight">${amountHeadline}</div>
+              <div class="font-display font-extrabold text-lg text-brand-700 leading-tight">${amountHeadline}</div>
               <h3 class="font-display font-bold text-base text-slate-900 mt-1 leading-snug">${opportunity.name}</h3>
-              <div class="text-xs text-slate-500 mt-1 flex items-center gap-1.5">
-                <i class="fas fa-building text-[10px] text-slate-400"></i>
+              <div class="text-xs text-slate-600 mt-1 flex items-center gap-1.5">
+                <i class="fas fa-building text-[10px] text-slate-500"></i>
                 <span>by ${funderName}</span>
               </div>
             </div>
-            <div class="w-10 h-10 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center text-brand-600 shrink-0">
+            <div class="w-10 h-10 rounded-xl bg-brand-600 text-white flex items-center justify-center shrink-0 shadow-sm">
               <i class="fas fa-hand-holding-dollar text-sm"></i>
             </div>
           </div>
 
           <div class="flex flex-wrap gap-1.5 mt-3">
-            <span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-brand-50 text-brand-700 border border-brand-200">
+            <span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-white/80 text-brand-700 border border-brand-200">
               <i class="fas fa-tag mr-1 opacity-70"></i>${sector}
             </span>
-            <span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-amber-50 text-amber-700 border border-amber-200">
+            <span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-white/80 text-amber-700 border border-amber-200">
               <i class="fas fa-map-marker-alt mr-1 opacity-70"></i>${region}
             </span>
-            <span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-slate-100 text-slate-700 border border-slate-200">
+            <span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-white/80 text-slate-700 border border-slate-300">
               <i class="fas fa-clock mr-1 opacity-70"></i>Due: ${deadlineText}
             </span>
           </div>
         </div>
 
         <div class="p-6 flex-1 flex flex-col">
-          <p class="text-sm text-slate-600 leading-relaxed mb-4">
+          <p class="text-sm text-slate-700 leading-relaxed mb-4">
             ${opportunity.description || "No description available."}
           </p>
 
-          <div class="mt-auto rounded-xl bg-slate-50 border border-slate-100 p-4">
-            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+          <div class="mt-auto rounded-xl bg-white/70 border border-slate-300/60 p-4">
+            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
               <i class="fas fa-clipboard-check mr-1"></i>Requirements
             </div>
-            <div class="text-xs text-slate-600 leading-relaxed">${requirements}</div>
+            <div class="text-xs text-slate-700 leading-relaxed">${requirements}</div>
           </div>
         </div>
 
@@ -325,7 +324,7 @@
             <i class="fas fa-arrow-right-to-bracket text-xs"></i>
             Apply Now
           </button>
-          <div class="text-center text-[11px] text-slate-400 mt-2">
+          <div class="text-center text-[11px] text-slate-600 mt-2">
             Login required to apply
           </div>
         </div>
@@ -336,12 +335,12 @@
 
     function showError(message) {
       opportunitiesGrid.innerHTML = `
-        <div class="col-span-full flex flex-col items-center text-center py-20 bg-white rounded-2xl border border-rose-200">
-          <div class="w-16 h-16 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 mb-4">
+        <div class="col-span-full flex flex-col items-center text-center py-20 rounded-2xl bg-slate-200/60 backdrop-blur-sm border border-rose-300/70 shadow-sm">
+          <div class="w-16 h-16 rounded-2xl bg-rose-600 text-white flex items-center justify-center mb-4 shadow-sm">
             <i class="fas fa-exclamation-triangle text-2xl"></i>
           </div>
           <h3 class="font-display font-bold text-lg text-slate-900 mb-1">Couldn't load opportunities</h3>
-          <p class="text-sm text-slate-500 max-w-sm mb-5">${message}</p>
+          <p class="text-sm text-slate-700 max-w-sm mb-5">${message}</p>
           <button onclick="loadFundingOpportunities()" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold text-sm shadow-sm transition">
             <i class="fas fa-rotate-right mr-1.5"></i>Try Again
           </button>

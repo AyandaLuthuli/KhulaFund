@@ -1,1957 +1,799 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FundFinder - Applications</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <style>
-      /* CSS Variables for Orange Design System */
-      :root {
-        --color-white: #ffffff;
-        --color-orange: #ff8c42; /* Softer orange */
-        --color-orange-medium: #ffa366;
-        --color-orange-light: #ffc8a8;
-        --color-orange-very-light: #ffe8db;
-        --color-dark: #333333;
-        --color-gray: #666666;
-        --color-gray-light: #f5f5f5;
-        --color-gray-border: #e0e0e0;
-        --font-heading: "Archivo Black", sans-serif;
-        --font-body: "Archivo", sans-serif;
-        --border-radius-sm: 4px;
-        --border-radius-md: 8px;
-        --border-radius-lg: 12px;
-        --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
-        --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
-        --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
-        --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-      }
-
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      body {
-        font-family: var(--font-body);
-        line-height: 1.6;
-        color: var(--color-dark);
-        background: var(--color-gray-light);
-      }
-
-      /* Header */
-      .header {
-        background: var(--color-white);
-        padding: 1rem 2rem;
-        border-bottom: 2px solid var(--color-orange);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: var(--shadow-sm);
-      }
-
-      .logo {
-        font-weight: 700;
-        font-size: 1.8rem;
-        color: var(--color-orange);
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-family: var(--font-heading);
-      }
-
-      .nav-links {
-        display: flex;
-        gap: 2rem;
-        align-items: center;
-      }
-
-      .nav-links a {
-        color: var(--color-dark);
-        text-decoration: none;
-        font-weight: 600;
-        padding: 0.5rem 1rem;
-        border-radius: var(--border-radius-md);
-        transition: var(--transition);
-        position: relative;
-      }
-
-      .nav-links a:hover,
-      .nav-links a.active {
-        color: var(--color-orange);
-      }
-
-      .nav-links a.active::after {
-        content: "";
-        position: absolute;
-        bottom: -2px;
-        left: 1rem;
-        right: 1rem;
-        height: 3px;
-        background: var(--color-orange);
-        border-radius: var(--border-radius-sm);
-      }
-
-      .user-menu {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-      }
-
-      .user-info {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-
-      .user-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: var(--color-orange);
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-      }
-
-      .user-details {
-        display: flex;
-        flex-direction: column;
-      }
-
-      .user-name {
-        font-weight: 600;
-      }
-
-      .user-role {
-        font-size: 0.8rem;
-        color: var(--color-gray);
-      }
-
-      .logout-btn {
-        background: #ff4757;
-        color: white;
-        border: none;
-        padding: 0.6rem 1.2rem;
-        border-radius: var(--border-radius-md);
-        cursor: pointer;
-        font-weight: 600;
-        transition: var(--transition);
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-
-      .logout-btn:hover {
-        background: #ff3742;
-        transform: translateY(-2px);
-      }
-
-      /* Main Content */
-      .main-content {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 2rem;
-      }
-
-      .access-denied {
-        text-align: center;
-        padding: 4rem 2rem;
-        background: var(--color-white);
-        border-radius: var(--border-radius-lg);
-        box-shadow: var(--shadow-md);
-      }
-
-      .access-denied h2 {
-        color: #dc2626;
-        margin-bottom: 1rem;
-        font-family: var(--font-heading);
-      }
-
-      .access-denied p {
-        color: var(--color-gray);
-        margin-bottom: 2rem;
-      }
-
-      .page-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 2rem;
-      }
-
-      .page-header h1 {
-        color: var(--color-orange);
-        font-size: 2.5rem;
-        font-family: var(--font-heading);
-      }
-
-      .header-stats {
-        background: var(--color-orange);
-        color: white;
-        padding: 0.5rem 1rem;
-        border-radius: 20px;
-        font-weight: 600;
-        font-size: 0.9rem;
-      }
-
-      .btn {
-        padding: 0.75rem 1.5rem;
-        border: none;
-        border-radius: var(--border-radius-md);
-        font-weight: 600;
-        cursor: pointer;
-        transition: var(--transition);
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-family: var(--font-body);
-      }
-
-      .btn-primary {
-        background: var(--color-orange);
-        color: white;
-      }
-
-      .btn-primary:hover {
-        background: var(--color-orange-medium);
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
-      }
-
-      .btn-secondary {
-        background: var(--color-gray);
-        color: white;
-      }
-
-      .btn-secondary:hover {
-        background: #5a6268;
-      }
-
-      .btn-success {
-        background: #10b981;
-        color: white;
-      }
-
-      .btn-success:hover {
-        background: #059669;
-      }
-
-      .btn-danger {
-        background: #ef4444;
-        color: white;
-      }
-
-      .btn-danger:hover {
-        background: #dc2626;
-      }
-
-      .btn-warning {
-        background: #f59e0b;
-        color: white;
-      }
-
-      .btn-warning:hover {
-        background: #d97706;
-      }
-
-      .btn-small {
-        padding: 0.5rem 1rem;
-        font-size: 0.8rem;
-      }
-
-      /* Tabs */
-      .tabs {
-        display: flex;
-        background: var(--color-white);
-        border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
-        overflow: hidden;
-        box-shadow: var(--shadow-md);
-        margin-bottom: 0;
-      }
-
-      .tab {
-        padding: 1rem 2rem;
-        cursor: pointer;
-        font-weight: 600;
-        transition: var(--transition);
-        border-bottom: 3px solid transparent;
-        color: var(--color-gray);
-      }
-
-      .tab.active {
-        border-bottom: 3px solid var(--color-orange);
-        color: var(--color-orange);
-        background: var(--color-orange-very-light);
-      }
-
-      .tab:hover:not(.active) {
-        background: var(--color-gray-light);
-        color: var(--color-dark);
-      }
-
-      /* Tab Content */
-      .tab-content {
-        display: none;
-        background: var(--color-white);
-        padding: 2rem;
-        border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
-        box-shadow: var(--shadow-md);
-        margin-bottom: 2rem;
-      }
-
-      .tab-content.active {
-        display: block;
-      }
-
-      /* Filters */
-      .filters {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-        padding-bottom: 1.5rem;
-        border-bottom: 1px solid var(--color-gray-border);
-      }
-
-      .filter-group {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-      }
-
-      .filter-group label {
-        font-weight: 600;
-        color: var(--color-dark);
-        font-size: 0.9rem;
-      }
-
-      select,
-      input {
-        padding: 0.75rem;
-        border: 2px solid var(--color-gray-border);
-        border-radius: var(--border-radius-md);
-        background: var(--color-gray-light);
-        font-size: 0.9rem;
-        font-family: var(--font-body);
-        transition: var(--transition);
-      }
-
-      select:focus,
-      input:focus {
-        border-color: var(--color-orange);
-        background: var(--color-white);
-        outline: none;
-        box-shadow: 0 0 0 3px rgba(255, 140, 66, 0.1);
-      }
-
-      /* Tables */
-      .table-container {
-        overflow-x: auto;
-        border-radius: var(--border-radius-md);
-        box-shadow: var(--shadow-sm);
-      }
-
-      .data-table {
-        width: 100%;
-        border-collapse: collapse;
-        background: var(--color-white);
-      }
-
-      .data-table th,
-      .data-table td {
-        padding: 1rem;
-        text-align: left;
-        border-bottom: 1px solid var(--color-gray-border);
-      }
-
-      .data-table th {
-        background: var(--color-orange-very-light);
-        font-weight: 600;
-        color: var(--color-orange);
-        font-family: var(--font-heading);
-      }
-
-      .data-table tr:hover {
-        background: var(--color-gray-light);
-      }
-
-      .status-badge {
-        padding: 0.25rem 0.75rem;
-        border-radius: 15px;
-        font-size: 0.8rem;
-        font-weight: 600;
-      }
-
-      .status-submitted {
-        background: #e0f2fe;
-        color: #0369a1;
-      }
-
-      .status-review {
-        background: #fff3cd;
-        color: #856404;
-      }
-
-      .status-approved {
-        background: #e6f7ee;
-        color: #0a7b3e;
-      }
-
-      .status-rejected {
-        background: #fde8e8;
-        color: #c53030;
-      }
-
-      .status-needs-info {
-        background: #fef3c7;
-        color: #92400e;
-      }
-
-      .amount {
-        font-weight: 600;
-        color: var(--color-orange);
-      }
-
-      .actions {
-        display: flex;
-        gap: 0.5rem;
-      }
-
-      /* Match Score */
-      .match-score {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.25rem 0.75rem;
-        border-radius: 15px;
-        font-size: 0.8rem;
-        font-weight: 600;
-      }
-
-      .match-high {
-        background: #e6f7ee;
-        color: #0a7b3e;
-      }
-
-      .match-medium {
-        background: #fff3cd;
-        color: #856404;
-      }
-
-      .match-low {
-        background: #fde8e8;
-        color: #c53030;
-      }
-
-      /* Modal */
-      .modal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 1000;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .modal.active {
-        display: flex;
-      }
-
-      .modal-content {
-        background: var(--color-white);
-        padding: 2rem;
-        border-radius: var(--border-radius-lg);
-        width: 90%;
-        max-width: 800px;
-        max-height: 90vh;
-        overflow-y: auto;
-        box-shadow: var(--shadow-lg);
-      }
-
-      .modal-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1.5rem;
-        padding-bottom: 1rem;
-        border-bottom: 1px solid var(--color-gray-border);
-      }
-
-      .modal-header h2 {
-        color: var(--color-orange);
-        font-family: var(--font-heading);
-      }
-
-      .close-modal {
-        background: none;
-        border: none;
-        font-size: 1.5rem;
-        cursor: pointer;
-        color: var(--color-gray);
-        transition: var(--transition);
-      }
-
-      .close-modal:hover {
-        color: var(--color-dark);
-      }
-
-      /* Application Details */
-      .application-details {
-        background: var(--color-gray-light);
-        padding: 1.5rem;
-        border-radius: var(--border-radius-md);
-        margin: 1rem 0;
-      }
-
-      .application-details h3 {
-        color: var(--color-orange);
-        margin-bottom: 1rem;
-        font-family: var(--font-heading);
-      }
-
-      .detail-row {
-        display: flex;
-        margin-bottom: 0.5rem;
-      }
-
-      .detail-label {
-        font-weight: 600;
-        min-width: 150px;
-        color: var(--color-gray);
-      }
-
-      .detail-value {
-        flex: 1;
-      }
-
-      .form-data-section {
-        margin: 1.5rem 0;
-        padding: 1rem;
-        background: var(--color-white);
-        border-radius: var(--border-radius-md);
-        border-left: 4px solid var(--color-orange);
-      }
-
-      .form-data-section h4 {
-        margin-bottom: 1rem;
-        color: var(--color-orange);
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-family: var(--font-heading);
-      }
-
-      .documentation-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
-        margin-top: 1rem;
-      }
-
-      .doc-item {
-        background: var(--color-white);
-        padding: 1rem;
-        border-radius: var(--border-radius-md);
-        text-align: center;
-        border: 2px solid var(--color-gray-border);
-        transition: var(--transition);
-      }
-
-      .doc-item:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-sm);
-      }
-
-      .doc-item i {
-        font-size: 2rem;
-        color: var(--color-orange);
-        margin-bottom: 0.5rem;
-      }
-
-      .doc-item.verified {
-        border-color: #10b981;
-        background: #f0fdf4;
-      }
-
-      .doc-item.verified i {
-        color: #10b981;
-      }
-
-      .form-actions {
-        display: flex;
-        gap: 1rem;
-        justify-content: flex-end;
-        margin-top: 2rem;
-        padding-top: 1.5rem;
-        border-top: 1px solid var(--color-gray-border);
-      }
-
-      /* Loading */
-      .loading {
-        text-align: center;
-        padding: 3rem;
-      }
-
-      .spinner {
-        border: 4px solid rgba(0, 0, 0, 0.1);
-        border-left-color: var(--color-orange);
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        animation: spin 1s linear infinite;
-        margin: 0 auto 1rem;
-      }
-
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Applications — FundFinder Funder</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#fff3e0', 100: '#ffe0b2', 200: '#ffcc80', 300: '#ffb74d',
+              400: '#ffa726', 500: '#ff6d00', 600: '#e65100', 700: '#bf360c',
+              800: '#9a3412', 900: '#7c2d12',
+            },
+            slate: { 850: '#151e32', 900: '#0f172a', 950: '#090d16' }
+          },
+          boxShadow: {
+            'glass': '0 4px 30px rgba(15, 23, 42, 0.05)',
+            'elevated': '0 20px 40px -15px rgba(15, 23, 42, 0.09)',
+          }
         }
       }
+    };
+  </script>
+  <style>
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #f8fafc; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-      .no-data {
-        text-align: center;
-        padding: 3rem;
-        color: var(--color-gray);
-      }
+    .spinner {
+      border: 3px solid rgba(230, 81, 0, 0.15);
+      border-left-color: #e65100;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-      .no-data i {
-        font-size: 3rem;
-        color: var(--color-gray-border);
-        margin-bottom: 1rem;
-      }
+    .modal { display: none; }
+    .modal.active { display: flex; }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-900 font-sans antialiased selection:bg-brand-600 selection:text-white min-h-screen flex flex-col">
 
-      .no-data h3 {
-        color: var(--color-dark);
-        margin-bottom: 1rem;
-        font-family: var(--font-heading);
-      }
+  <!-- Sticky Header -->
+  <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-glass">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-20">
 
-      /* Application Cards (Mobile View) */
-      .application-cards {
-        display: none;
-        flex-direction: column;
-        gap: 1rem;
-      }
-
-      .application-card {
-        background: var(--color-white);
-        border: 1px solid var(--color-gray-border);
-        border-radius: var(--border-radius-lg);
-        padding: 1.5rem;
-        box-shadow: var(--shadow-sm);
-        transition: var(--transition);
-      }
-
-      .application-card:hover {
-        box-shadow: var(--shadow-md);
-      }
-
-      .card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 1rem;
-      }
-
-      .card-title {
-        font-weight: 600;
-        font-size: 1.1rem;
-        color: var(--color-orange);
-      }
-
-      .card-match {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-
-      .card-details {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
-        margin-bottom: 1rem;
-      }
-
-      .card-detail {
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-      }
-
-      .card-label {
-        font-size: 0.8rem;
-        color: var(--color-gray);
-        font-weight: 500;
-      }
-
-      .card-value {
-        font-weight: 600;
-      }
-
-      .card-actions {
-        display: flex;
-        gap: 0.5rem;
-        justify-content: space-between;
-      }
-
-      @media (max-width: 768px) {
-        .header {
-          flex-direction: column;
-          gap: 1rem;
-          padding: 1rem;
-        }
-
-        .nav-links {
-          gap: 0.5rem;
-        }
-
-        .nav-links a {
-          padding: 0.5rem;
-          font-size: 0.9rem;
-        }
-
-        .main-content {
-          padding: 1rem;
-        }
-
-        .tabs {
-          flex-direction: column;
-        }
-
-        .tab {
-          padding: 1rem;
-          text-align: center;
-        }
-
-        .filters {
-          grid-template-columns: 1fr;
-        }
-
-        .actions {
-          flex-direction: column;
-        }
-
-        .data-table {
-          display: none;
-        }
-
-        .application-cards {
-          display: flex;
-        }
-
-        .form-actions {
-          flex-direction: column;
-        }
-
-        .detail-row {
-          flex-direction: column;
-          gap: 0.25rem;
-        }
-
-        .detail-label {
-          min-width: auto;
-        }
-
-        .documentation-grid {
-          grid-template-columns: 1fr;
-        }
-
-        .page-header {
-          flex-direction: column;
-          gap: 1rem;
-          align-items: flex-start;
-        }
-
-        .page-header h1 {
-          font-size: 2rem;
-        }
-
-        .header-stats {
-          align-self: flex-start;
-        }
-      }
-
-      @media (max-width: 480px) {
-        .card-details {
-          grid-template-columns: 1fr;
-        }
-
-        .card-actions {
-          flex-direction: column;
-        }
-
-        .modal-content {
-          padding: 1.5rem;
-          margin: 1rem;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <!-- Header -->
-    <div class="header">
-      <div class="logo">
-        <i class="fas fa-hand-holding-usd"></i>
-        FundFinder Funder
-      </div>
-      <div class="nav-links">
-        <a href="funder-dashboard.html">Dashboard</a>
-        <a href="funder-funding.html">My Funding</a>
-        <a href="funder-applications.html" class="active">Applications</a>
-      </div>
-      <div class="user-menu">
-        <div class="user-info">
-          <div class="user-avatar" id="user-avatar">F</div>
-          <div class="user-details">
-            <div class="user-name" id="userName">Funder</div>
-            <div class="user-role">Funding Provider</div>
+        <a href="funder-dashboard.html" class="flex items-center gap-2.5 group">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-600 to-brand-500 flex items-center justify-center text-white shadow-md shadow-brand-600/25 group-hover:scale-105 transition-transform">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+            </svg>
           </div>
+          <div class="flex flex-col">
+            <div class="flex items-center gap-1.5">
+              <span class="font-display font-extrabold text-xl tracking-tight text-slate-900">FundFinder</span>
+              <span class="w-2 h-2 rounded-full bg-brand-600"></span>
+            </div>
+            <span class="text-[10px] uppercase tracking-widest font-bold text-brand-600 -mt-1">Funder Portal</span>
+          </div>
+        </a>
+
+        <nav class="hidden lg:flex items-center gap-7">
+          <a href="funder-dashboard.html" class="text-sm font-medium text-slate-600 hover:text-brand-600 transition-colors">Dashboard</a>
+          <a href="funder-funding.html" class="text-sm font-medium text-slate-600 hover:text-brand-600 transition-colors">My Funding</a>
+          <a href="funder-applications.html" class="text-sm font-semibold text-brand-600 relative pb-1">
+            Applications
+            <span class="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-600 rounded-full"></span>
+          </a>
+        </nav>
+
+        <div class="hidden lg:flex items-center gap-3">
+          <div class="flex items-center gap-2.5 pl-3 pr-4 py-1.5 rounded-xl bg-slate-50 border border-slate-200">
+            <div id="user-avatar" class="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-600 to-brand-500 text-white flex items-center justify-center font-bold text-sm shadow-sm">F</div>
+            <div class="flex flex-col">
+              <div id="userName" class="text-xs font-semibold text-slate-900 leading-tight">Funder</div>
+              <div class="text-[10px] text-slate-500">Funding Provider</div>
+            </div>
+          </div>
+          <button onclick="logout()" class="px-4 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-sm font-semibold transition-colors flex items-center gap-2">
+            <i class="fas fa-sign-out-alt text-xs"></i>
+            <span>Logout</span>
+          </button>
         </div>
-        <button class="logout-btn" onclick="logout()">
-          <i class="fas fa-sign-out-alt"></i> Logout
-        </button>
+
+        <div class="lg:hidden flex items-center">
+          <button id="mobile-menu-btn" aria-label="Toggle Menu" class="p-2.5 rounded-xl text-slate-700 hover:bg-slate-100 transition-colors">
+            <i class="fas fa-bars text-xl" id="mobile-menu-icon"></i>
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="main-content">
-      <div id="accessDenied" class="access-denied" style="display: none">
-        <h2>Access Denied</h2>
-        <p>You need to be a registered funder to access this portal.</p>
-        <div style="display: flex; gap: 1rem; justify-content: center">
-          <a href="index.html" class="btn btn-primary">Go to Main Site</a>
-          <a href="login.html" class="btn btn-secondary">Login as Funder</a>
+    <div id="mobile-menu" class="hidden lg:hidden bg-white border-b border-slate-200 px-4 pt-2 pb-6 space-y-2 shadow-xl">
+      <a href="funder-dashboard.html" class="block px-3 py-2.5 rounded-xl text-base font-medium text-slate-700 hover:bg-brand-50 hover:text-brand-600">Dashboard</a>
+      <a href="funder-funding.html" class="block px-3 py-2.5 rounded-xl text-base font-medium text-slate-700 hover:bg-brand-50 hover:text-brand-600">My Funding</a>
+      <a href="funder-applications.html" class="block px-3 py-2.5 rounded-xl text-base font-semibold text-brand-600 bg-brand-50">Applications</a>
+      <div class="pt-3 border-t border-slate-100 flex flex-col gap-2.5">
+        <div class="flex items-center gap-2.5 px-3 py-2">
+          <div id="user-avatar-mobile" class="w-9 h-9 rounded-lg bg-gradient-to-br from-brand-600 to-brand-500 text-white flex items-center justify-center font-bold text-sm">F</div>
+          <div class="flex flex-col">
+            <div id="userName-mobile" class="text-sm font-semibold text-slate-900 leading-tight">Funder</div>
+            <div class="text-[10px] text-slate-500">Funding Provider</div>
+          </div>
+        </div>
+        <button onclick="logout()" class="w-full py-2.5 text-center text-sm font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-xl">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+      <!-- Access Denied -->
+      <div id="accessDenied" class="hidden rounded-2xl bg-slate-200/60 backdrop-blur-sm border border-rose-300/70 shadow-sm p-10 text-center">
+        <div class="w-16 h-16 rounded-2xl bg-rose-600 text-white flex items-center justify-center mx-auto mb-4 shadow-sm">
+          <i class="fas fa-shield-halved text-2xl"></i>
+        </div>
+        <h2 class="font-display font-extrabold text-xl text-slate-900 mb-2">Access Denied</h2>
+        <p class="text-sm text-slate-700 mb-6">You need to be a registered funder to access this portal.</p>
+        <div class="flex flex-wrap gap-3 justify-center">
+          <a href="index.html" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-sm font-semibold shadow-md shadow-brand-600/20 transition-colors">
+            <i class="fas fa-home mr-1.5"></i>Go to Main Site
+          </a>
+          <a href="login.html" class="px-5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 text-sm font-semibold transition-colors">
+            <i class="fas fa-sign-in-alt mr-1.5"></i>Login as Funder
+          </a>
         </div>
       </div>
 
-      <div id="funderContent" style="display: none">
-        <div class="page-header">
-          <h1>SMME Applications</h1>
-          <div class="header-stats" id="headerStats">
-            <span id="pendingCount">0</span> pending reviews
+      <!-- Funder Content -->
+      <div id="funderContent" class="hidden space-y-6">
+
+        <!-- Page Header -->
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-widest text-brand-700">Application Management</span>
+            <h1 class="font-display font-extrabold text-3xl sm:text-4xl text-slate-900 mt-2">SMME applications</h1>
+          </div>
+          <div class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm font-semibold">
+            <i class="fas fa-clock text-xs"></i>
+            <span id="pendingCount">0</span>
+            <span>pending reviews</span>
           </div>
         </div>
 
         <!-- Tabs -->
-        <div class="tabs">
-          <div class="tab active" onclick="switchTab('all')">
-            All Applications
-          </div>
-          <div class="tab" onclick="switchTab('pending')">Pending Review</div>
-          <div class="tab" onclick="switchTab('approved')">Approved</div>
-          <div class="tab" onclick="switchTab('rejected')">Rejected</div>
+        <div class="rounded-2xl bg-white/80 backdrop-blur-sm border border-slate-300/60 shadow-sm p-1.5 inline-flex flex-wrap gap-1">
+          <button onclick="switchTab('all')" id="tabBtn-all" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold bg-brand-600 text-white shadow-sm transition-all">All Applications</button>
+          <button onclick="switchTab('pending')" id="tabBtn-pending" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-all">Pending Review</button>
+          <button onclick="switchTab('approved')" id="tabBtn-approved" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-all">Approved</button>
+          <button onclick="switchTab('rejected')" id="tabBtn-rejected" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-all">Rejected</button>
         </div>
 
-        <!-- All Applications Tab -->
-        <div id="allTab" class="tab-content active">
-          <div class="filters">
-            <div class="filter-group">
-              <label for="fundingFilter">Funding Opportunity</label>
-              <select id="fundingFilter" onchange="filterApplications()">
-                <option value="all">All Opportunities</option>
-              </select>
-            </div>
-            <div class="filter-group">
-              <label for="statusFilter">Status</label>
-              <select id="statusFilter" onchange="filterApplications()">
-                <option value="all">All Statuses</option>
-                <option value="Submitted">Submitted</option>
-                <option value="In Review">In Review</option>
-                <option value="Approved">Approved</option>
-                <option value="Rejected">Rejected</option>
-                <option value="Needs More Info">Needs More Info</option>
-              </select>
-            </div>
-            <div class="filter-group">
-              <label for="searchApplications">Search</label>
-              <input
-                type="text"
-                id="searchApplications"
-                placeholder="Search by SMME..."
-                oninput="filterApplications()"
-              />
-            </div>
-          </div>
-
-          <!-- Desktop Table View -->
-          <div class="table-container">
-            <div id="applicationsTable">
-              <div class="loading">
-                <div class="spinner"></div>
-                <p>Loading applications...</p>
+        <!-- All Tab -->
+        <div id="allTab" class="tab-content">
+          <div class="rounded-2xl bg-slate-200/60 backdrop-blur-sm border border-slate-300/60 shadow-sm p-5 mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label for="fundingFilter" class="block text-xs font-semibold text-slate-800 mb-1.5">Funding Opportunity</label>
+                <select id="fundingFilter" onchange="filterApplications()"
+                  class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white/80 text-sm text-slate-900 focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100 transition">
+                  <option value="all">All Opportunities</option>
+                </select>
+              </div>
+              <div>
+                <label for="statusFilter" class="block text-xs font-semibold text-slate-800 mb-1.5">Status</label>
+                <select id="statusFilter" onchange="filterApplications()"
+                  class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white/80 text-sm text-slate-900 focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100 transition">
+                  <option value="all">All Statuses</option>
+                  <option value="Submitted">Submitted</option>
+                  <option value="In Review">In Review</option>
+                  <option value="Approved">Approved</option>
+                  <option value="Rejected">Rejected</option>
+                  <option value="Needs More Info">Needs More Info</option>
+                </select>
+              </div>
+              <div>
+                <label for="searchApplications" class="block text-xs font-semibold text-slate-800 mb-1.5">Search</label>
+                <input type="text" id="searchApplications" placeholder="Search by SMME..." oninput="filterApplications()"
+                  class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white/80 text-sm text-slate-900 focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100 transition" />
               </div>
             </div>
           </div>
 
-          <!-- Mobile Card View -->
-          <div class="application-cards" id="applicationsCards">
-            <div class="loading">
-              <div class="spinner"></div>
-              <p>Loading applications...</p>
-            </div>
-          </div>
+          <div id="applicationsTable" class="rounded-2xl bg-slate-200/60 backdrop-blur-sm border border-slate-300/60 shadow-sm overflow-hidden"></div>
         </div>
 
-        <!-- Pending Applications Tab -->
-        <div id="pendingTab" class="tab-content">
-          <div class="filters">
-            <div class="filter-group">
-              <label for="pendingFundingFilter">Funding Opportunity</label>
-              <select
-                id="pendingFundingFilter"
-                onchange="filterPendingApplications()"
-              >
-                <option value="all">All Opportunities</option>
-              </select>
-            </div>
-            <div class="filter-group">
-              <label for="searchPending">Search</label>
-              <input
-                type="text"
-                id="searchPending"
-                placeholder="Search by SMME..."
-                oninput="filterPendingApplications()"
-              />
-            </div>
-          </div>
-          <div class="table-container">
-            <div id="pendingTable">
-              <div class="loading">
-                <div class="spinner"></div>
-                <p>Loading pending applications...</p>
+        <!-- Pending Tab -->
+        <div id="pendingTab" class="tab-content hidden">
+          <div class="rounded-2xl bg-slate-200/60 backdrop-blur-sm border border-slate-300/60 shadow-sm p-5 mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="pendingFundingFilter" class="block text-xs font-semibold text-slate-800 mb-1.5">Funding Opportunity</label>
+                <select id="pendingFundingFilter" onchange="filterPendingApplications()"
+                  class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white/80 text-sm text-slate-900 focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100 transition">
+                  <option value="all">All Opportunities</option>
+                </select>
+              </div>
+              <div>
+                <label for="searchPending" class="block text-xs font-semibold text-slate-800 mb-1.5">Search</label>
+                <input type="text" id="searchPending" placeholder="Search by SMME..." oninput="filterPendingApplications()"
+                  class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white/80 text-sm text-slate-900 focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100 transition" />
               </div>
             </div>
           </div>
-          <div class="application-cards" id="pendingCards"></div>
+          <div id="pendingTable" class="rounded-2xl bg-slate-200/60 backdrop-blur-sm border border-slate-300/60 shadow-sm overflow-hidden"></div>
         </div>
 
-        <!-- Approved Applications Tab -->
-        <div id="approvedTab" class="tab-content">
-          <div class="filters">
-            <div class="filter-group">
-              <label for="approvedFundingFilter">Funding Opportunity</label>
-              <select
-                id="approvedFundingFilter"
-                onchange="filterApprovedApplications()"
-              >
-                <option value="all">All Opportunities</option>
-              </select>
-            </div>
-            <div class="filter-group">
-              <label for="searchApproved">Search</label>
-              <input
-                type="text"
-                id="searchApproved"
-                placeholder="Search by SMME..."
-                oninput="filterApprovedApplications()"
-              />
-            </div>
-          </div>
-          <div class="table-container">
-            <div id="approvedTable">
-              <div class="loading">
-                <div class="spinner"></div>
-                <p>Loading approved applications...</p>
+        <!-- Approved Tab -->
+        <div id="approvedTab" class="tab-content hidden">
+          <div class="rounded-2xl bg-slate-200/60 backdrop-blur-sm border border-slate-300/60 shadow-sm p-5 mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="approvedFundingFilter" class="block text-xs font-semibold text-slate-800 mb-1.5">Funding Opportunity</label>
+                <select id="approvedFundingFilter" onchange="filterApprovedApplications()"
+                  class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white/80 text-sm text-slate-900 focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100 transition">
+                  <option value="all">All Opportunities</option>
+                </select>
+              </div>
+              <div>
+                <label for="searchApproved" class="block text-xs font-semibold text-slate-800 mb-1.5">Search</label>
+                <input type="text" id="searchApproved" placeholder="Search by SMME..." oninput="filterApprovedApplications()"
+                  class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white/80 text-sm text-slate-900 focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100 transition" />
               </div>
             </div>
           </div>
-          <div class="application-cards" id="approvedCards"></div>
+          <div id="approvedTable" class="rounded-2xl bg-slate-200/60 backdrop-blur-sm border border-slate-300/60 shadow-sm overflow-hidden"></div>
         </div>
 
-        <!-- Rejected Applications Tab -->
-        <div id="rejectedTab" class="tab-content">
-          <div class="filters">
-            <div class="filter-group">
-              <label for="rejectedFundingFilter">Funding Opportunity</label>
-              <select
-                id="rejectedFundingFilter"
-                onchange="filterRejectedApplications()"
-              >
-                <option value="all">All Opportunities</option>
-              </select>
-            </div>
-            <div class="filter-group">
-              <label for="searchRejected">Search</label>
-              <input
-                type="text"
-                id="searchRejected"
-                placeholder="Search by SMME..."
-                oninput="filterRejectedApplications()"
-              />
-            </div>
-          </div>
-          <div class="table-container">
-            <div id="rejectedTable">
-              <div class="loading">
-                <div class="spinner"></div>
-                <p>Loading rejected applications...</p>
+        <!-- Rejected Tab -->
+        <div id="rejectedTab" class="tab-content hidden">
+          <div class="rounded-2xl bg-slate-200/60 backdrop-blur-sm border border-slate-300/60 shadow-sm p-5 mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="rejectedFundingFilter" class="block text-xs font-semibold text-slate-800 mb-1.5">Funding Opportunity</label>
+                <select id="rejectedFundingFilter" onchange="filterRejectedApplications()"
+                  class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white/80 text-sm text-slate-900 focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100 transition">
+                  <option value="all">All Opportunities</option>
+                </select>
+              </div>
+              <div>
+                <label for="searchRejected" class="block text-xs font-semibold text-slate-800 mb-1.5">Search</label>
+                <input type="text" id="searchRejected" placeholder="Search by SMME..." oninput="filterRejectedApplications()"
+                  class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white/80 text-sm text-slate-900 focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100 transition" />
               </div>
             </div>
           </div>
-          <div class="application-cards" id="rejectedCards"></div>
+          <div id="rejectedTable" class="rounded-2xl bg-slate-200/60 backdrop-blur-sm border border-slate-300/60 shadow-sm overflow-hidden"></div>
         </div>
+
       </div>
     </div>
+  </main>
 
-    <!-- Application Review Modal -->
-    <div id="reviewModal" class="modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2>Review Application</h2>
-          <button class="close-modal" onclick="closeReviewModal()">
-            &times;
-          </button>
-        </div>
-        <div id="reviewModalContent">
-          <!-- Dynamic content will be loaded here -->
-        </div>
+  <!-- Review Modal -->
+  <div id="reviewModal" class="modal fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-3xl shadow-2xl border border-slate-200 relative max-h-[92vh] flex flex-col">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+        <h2 class="font-display font-extrabold text-lg text-slate-900">Review Application</h2>
+        <button onclick="closeReviewModal()" class="w-9 h-9 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors">
+          <i class="fas fa-times text-sm"></i>
+        </button>
       </div>
+      <div id="reviewModalContent" class="overflow-y-auto px-6 py-5"></div>
     </div>
+  </div>
 
-    <script>
-      const SUPABASE_URL = "https://ovvvwbtexnbxzacizokr.supabase.co";
-      const SUPABASE_ANON_KEY =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dnZ3YnRleG5ieHphY2l6b2tyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1ODQ5OTEsImV4cCI6MjA3OTE2MDk5MX0.Ii21cw1Iyops8Zo784P-25NKz2m-TCyJ2zWwI4V1kcE";
+  <script>
+    // ============================================================
+    // ⚠️ BACKEND CONTRACT — preserved from original
+    // ============================================================
+    const SUPABASE_URL = "https://ovvvwbtexnbxzacizokr.supabase.co";
+    const SUPABASE_ANON_KEY =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dnZ3YnRleG5ieHphY2l6b2tyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1ODQ5OTEsImV4cCI6MjA3OTE2MDk5MX0.Ii21cw1Iyops8Zo784P-25NKz2m-TCyJ2zWwI4V1kcE";
 
-      const supabaseClient = window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_ANON_KEY
-      );
-      let currentFunder = null;
-      let funderFunding = [];
-      let allApplications = [];
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-      // Check funder authentication
-      document.addEventListener("DOMContentLoaded", async () => {
-        await checkFunderAuth();
-      });
+    let currentFunder = null;
+    let funderFunding = [];
+    let allApplications = [];
 
-      async function checkFunderAuth() {
-        const userData = localStorage.getItem("fundfinder_user");
+    document.addEventListener("DOMContentLoaded", async () => {
+      await checkFunderAuth();
+      initMobileMenu();
+    });
 
-        if (!userData) {
-          showAccessDenied();
-          return;
-        }
+    async function checkFunderAuth() {
+      const userData = localStorage.getItem("fundfinder_user");
+      if (!userData) { showAccessDenied(); return; }
+      const user = JSON.parse(userData);
 
-        const user = JSON.parse(userData);
+      const { data: userRecord, error } = await supabaseClient
+        .from("users").select("*").eq("id", user.id).single();
 
-        // Check if user is FUNDER and active
-        const { data: userRecord, error } = await supabaseClient
-          .from("users")
-          .select("*")
-          .eq("id", user.id)
-          .single();
-
-        if (
-          error ||
-          !userRecord ||
-          userRecord.role !== "FUNDER" ||
-          !userRecord.active
-        ) {
-          showAccessDenied();
-          return;
-        }
-
-        // User is valid funder, show funder content
-        currentFunder = userRecord;
-        document.getElementById("userName").textContent = userRecord.email;
-        document.getElementById("user-avatar").textContent = userRecord.email
-          .charAt(0)
-          .toUpperCase();
-        document.getElementById("funderContent").style.display = "block";
-
-        await loadApplicationsData();
+      if (error || !userRecord || userRecord.role !== "FUNDER" || !userRecord.active) {
+        showAccessDenied();
+        return;
       }
 
-      function showAccessDenied() {
-        document.getElementById("accessDenied").style.display = "block";
-        document.getElementById("funderContent").style.display = "none";
-      }
+      currentFunder = userRecord;
+      const username = currentFunder.email;
+      const initial = currentFunder.email.charAt(0).toUpperCase();
 
-      async function loadApplicationsData() {
-        try {
-          // Load funder's funding opportunities
-          const { data: funding, error: fundingError } = await supabaseClient
-            .from("funding")
-            .select("*")
-            .eq("funder_id", currentFunder.id);
+      document.getElementById("userName").textContent = username;
+      document.getElementById("user-avatar").textContent = initial;
+      const unameMobile = document.getElementById("userName-mobile");
+      const uavatarMobile = document.getElementById("user-avatar-mobile");
+      if (unameMobile) unameMobile.textContent = username;
+      if (uavatarMobile) uavatarMobile.textContent = initial;
 
-          if (fundingError) throw fundingError;
-          funderFunding = funding || [];
+      document.getElementById("funderContent").classList.remove("hidden");
 
-          // Load applications for funder's funding opportunities
-          const fundingIds = funderFunding.map((f) => f.id);
-          if (fundingIds.length > 0) {
-            const { data: applications, error: appsError } =
-              await supabaseClient
-                .from("applications")
-                .select(
-                  `
-          *,
-          funding:funding_id (
-            name,
-            description,
-            criteria
-          )
-        `
-                )
-                .in("funding_id", fundingIds)
-                .order("submitted_at", { ascending: false });
+      await loadApplicationsData();
+    }
 
-            if (!appsError && applications) {
-              // Load SMME data separately for each application
-              allApplications = await Promise.all(
-                applications.map(async (app) => {
-                  let smmeData = {
-                    business_name: "Unknown Business",
-                    sector: "Unknown Sector",
-                    region: "Unknown Region",
-                    years_in_operation: "Unknown",
-                    employees: "Unknown",
-                  };
+    function showAccessDenied() {
+      document.getElementById("accessDenied").classList.remove("hidden");
+      document.getElementById("funderContent").classList.add("hidden");
+    }
 
-                  try {
-                    // Get SMME profile data
-                    const { data: smmeProfile } = await supabaseClient
-                      .from("smmes")
-                      .select("profile")
-                      .eq("user_id", app.smme_id)
-                      .single();
+    async function loadApplicationsData() {
+      try {
+        const { data: funding, error: fundingError } = await supabaseClient
+          .from("funding").select("*").eq("funder_id", currentFunder.id);
 
-                    if (smmeProfile) {
-                      smmeData = { ...smmeData, ...smmeProfile.profile };
-                    }
-                  } catch (error) {
-                    console.warn(
-                      `Could not load SMME profile for user ${app.smme_id}`
-                    );
+        if (fundingError) throw fundingError;
+        funderFunding = funding || [];
+
+        const fundingIds = funderFunding.map((f) => f.id);
+        if (fundingIds.length > 0) {
+          const { data: applications, error: appsError } = await supabaseClient
+            .from("applications")
+            .select(`
+              *,
+              funding:funding_id (
+                name,
+                description,
+                criteria
+              )
+            `)
+            .in("funding_id", fundingIds)
+            .order("submitted_at", { ascending: false });
+
+          if (!appsError && applications) {
+            allApplications = await Promise.all(
+              applications.map(async (app) => {
+                let smmeData = {
+                  business_name: "Unknown Business",
+                  sector: "Unknown Sector",
+                  region: "Unknown Region",
+                  years_in_operation: "Unknown",
+                  employees: "Unknown",
+                };
+                try {
+                  const { data: smmeProfile } = await supabaseClient
+                    .from("smmes").select("profile").eq("user_id", app.smme_id).single();
+                  if (smmeProfile) {
+                    smmeData = { ...smmeData, ...smmeProfile.profile };
                   }
-
-                  return {
-                    ...app,
-                    smme_name: smmeData.business_name,
-                    smme_sector: smmeData.sector,
-                    smme_region: smmeData.region,
-                    smme_experience: smmeData.years_in_operation,
-                    smme_employees: smmeData.employees,
-                    funding_name: app.funding?.name || "Unknown Funding",
-                  };
-                })
-              );
-            } else {
-              console.error("Error loading applications:", appsError);
-              allApplications = [];
-            }
+                } catch (error) {
+                  console.warn(`Could not load SMME profile for user ${app.smme_id}`);
+                }
+                return {
+                  ...app,
+                  smme_name: smmeData.business_name,
+                  smme_sector: smmeData.sector,
+                  smme_region: smmeData.region,
+                  smme_experience: smmeData.years_in_operation,
+                  smme_employees: smmeData.employees,
+                  funding_name: app.funding?.name || "Unknown Funding",
+                };
+              })
+            );
           } else {
+            console.error("Error loading applications:", appsError);
             allApplications = [];
           }
-
-          populateFundingFilters();
-          displayApplications(allApplications);
-          updateHeaderStats();
-        } catch (error) {
-          console.error("Error loading applications data:", error);
-          document.getElementById("applicationsTable").innerHTML = `
-      <div class="no-data">
-        <i class="fas fa-exclamation-triangle"></i>
-        <p>Error loading applications</p>
-        <p style="font-size: 0.9rem; margin-top: 0.5rem;">Please try refreshing the page</p>
-      </div>
-    `;
-        }
-      }
-      function populateFundingFilters() {
-        const filters = [
-          "fundingFilter",
-          "pendingFundingFilter",
-          "approvedFundingFilter",
-          "rejectedFundingFilter",
-        ];
-
-        filters.forEach((filterId) => {
-          const filter = document.getElementById(filterId);
-          filter.innerHTML = '<option value="all">All Opportunities</option>';
-          funderFunding.forEach((funding) => {
-            const option = document.createElement("option");
-            option.value = funding.id;
-            option.textContent = funding.name;
-            filter.appendChild(option);
-          });
-        });
-      }
-
-      function displayApplications(applications) {
-        const pendingCount = applications.filter(
-          (app) => app.status === "Submitted" || app.status === "In Review"
-        ).length;
-        document.getElementById("pendingCount").textContent = pendingCount;
-
-        if (applications.length === 0) {
-          document.getElementById("applicationsTable").innerHTML = `
-            <div class="no-data">
-              <i class="fas fa-inbox"></i>
-              <p>No applications found</p>
-              <p style="font-size: 0.9rem; margin-top: 0.5rem;">Applications will appear here when SMMEs apply to your funding opportunities</p>
-            </div>
-          `;
-          document.getElementById("applicationsCards").innerHTML = `
-            <div class="no-data">
-              <i class="fas fa-inbox"></i>
-              <p>No applications found</p>
-            </div>
-          `;
-          return;
-        }
-
-        // Desktop Table View
-        const applicationsTable = document.getElementById("applicationsTable");
-        applicationsTable.innerHTML = `
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>SMME</th>
-                <th>Funding Opportunity</th>
-                <th>Amount Requested</th>
-                <th>Status</th>
-                <th>Applied</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${applications
-                .map((app) => {
-                  const statusClass = `status-${app.status
-                    .toLowerCase()
-                    .replace(" ", "-")}`;
-                  const formData = app.form_data || {};
-                  return `
-                <tr>
-                  <td>
-                    <div style="font-weight: 600;">${app.smme_name}</div>
-                    <div style="font-size: 0.8rem; color: #666;">
-                      ${app.smme_sector} • ${app.smme_region}
-                    </div>
-                  </td>
-                  <td>${app.funding_name}</td>
-                  <td class="amount">R ${(
-                    formData.requestedAmount || 0
-                  ).toLocaleString()}</td>
-                  <td>
-                    <span class="status-badge ${statusClass}">
-                      ${app.status}
-                    </span>
-                  </td>
-                  <td>${new Date(app.submitted_at).toLocaleDateString()}</td>
-                  <td>
-                    <div class="actions">
-                      <button class="btn btn-primary btn-small" onclick="reviewApplication('${
-                        app.id
-                      }')">
-                        <i class="fas fa-eye"></i> Review
-                      </button>
-                      ${
-                        app.status === "Submitted" || app.status === "In Review"
-                          ? `
-                        <button class="btn btn-success btn-small" onclick="updateApplicationStatus('${app.id}', 'Approved')">
-                          <i class="fas fa-check"></i> Approve
-                        </button>
-                        <button class="btn btn-danger btn-small" onclick="updateApplicationStatus('${app.id}', 'Rejected')">
-                          <i class="fas fa-times"></i> Reject
-                        </button>
-                      `
-                          : ""
-                      }
-                      ${
-                        app.status === "Submitted"
-                          ? `
-                        <button class="btn btn-warning btn-small" onclick="updateApplicationStatus('${app.id}', 'In Review')">
-                          <i class="fas fa-search"></i> Start Review
-                        </button>
-                      `
-                          : ""
-                      }
-                    </div>
-                  </td>
-                </tr>
-              `;
-                })
-                .join("")}
-            </tbody>
-          </table>
-        `;
-
-        // Mobile Card View
-        const applicationsCards = document.getElementById("applicationsCards");
-        applicationsCards.innerHTML = applications
-          .map((app) => {
-            const statusClass = `status-${app.status
-              .toLowerCase()
-              .replace(" ", "-")}`;
-            const formData = app.form_data || {};
-            return `
-            <div class="application-card">
-              <div class="card-header">
-                <div class="card-title">${app.smme_name}</div>
-                <span class="status-badge ${statusClass}">
-                  ${app.status}
-                </span>
-              </div>
-              <div class="card-details">
-                <div class="card-detail">
-                  <span class="card-label">Funding</span>
-                  <span class="card-value">${app.funding_name}</span>
-                </div>
-                <div class="card-detail">
-                  <span class="card-label">Amount</span>
-                  <span class="card-value amount">R ${(
-                    formData.requestedAmount || 0
-                  ).toLocaleString()}</span>
-                </div>
-                <div class="card-detail">
-                  <span class="card-label">Sector</span>
-                  <span class="card-value">${app.smme_sector}</span>
-                </div>
-                <div class="card-detail">
-                  <span class="card-label">Region</span>
-                  <span class="card-value">${app.smme_region}</span>
-                </div>
-              </div>
-              <div class="card-actions">
-                <button class="btn btn-primary btn-small" onclick="reviewApplication('${
-                  app.id
-                }')">
-                  <i class="fas fa-eye"></i> Review
-                </button>
-                ${
-                  app.status === "Submitted" || app.status === "In Review"
-                    ? `
-                  <button class="btn btn-success btn-small" onclick="updateApplicationStatus('${app.id}', 'Approved')">
-                    <i class="fas fa-check"></i> Approve
-                  </button>
-                  <button class="btn btn-danger btn-small" onclick="updateApplicationStatus('${app.id}', 'Rejected')">
-                    <i class="fas fa-times"></i> Reject
-                  </button>
-                `
-                    : ""
-                }
-              </div>
-            </div>
-          `;
-          })
-          .join("");
-      }
-
-      function updateHeaderStats() {
-        const pendingCount = allApplications.filter(
-          (app) => app.status === "Submitted" || app.status === "In Review"
-        ).length;
-        document.getElementById("pendingCount").textContent = pendingCount;
-      }
-
-      function switchTab(tabName) {
-        // Hide all tabs
-        document.querySelectorAll(".tab-content").forEach((tab) => {
-          tab.classList.remove("active");
-        });
-        document.querySelectorAll(".tab").forEach((tab) => {
-          tab.classList.remove("active");
-        });
-
-        // Show selected tab
-        document.getElementById(`${tabName}Tab`).classList.add("active");
-        document
-          .querySelector(`.tab[onclick="switchTab('${tabName}')"]`)
-          .classList.add("active");
-
-        // Filter applications based on tab
-        let filteredApplications = allApplications;
-        if (tabName === "pending") {
-          filteredApplications = allApplications.filter(
-            (app) => app.status === "Submitted" || app.status === "In Review"
-          );
-          displayPendingApplications(filteredApplications);
-        } else if (tabName === "approved") {
-          filteredApplications = allApplications.filter(
-            (app) => app.status === "Approved"
-          );
-          displayApprovedApplications(filteredApplications);
-        } else if (tabName === "rejected") {
-          filteredApplications = allApplications.filter(
-            (app) => app.status === "Rejected"
-          );
-          displayRejectedApplications(filteredApplications);
         } else {
-          // All applications
-          displayApplications(filteredApplications);
-        }
-      }
-
-      function filterApplications() {
-        const fundingFilter = document.getElementById("fundingFilter").value;
-        const statusFilter = document.getElementById("statusFilter").value;
-        const searchFilter = document
-          .getElementById("searchApplications")
-          .value.toLowerCase();
-
-        let filteredApplications = allApplications;
-
-        // Filter by funding opportunity
-        if (fundingFilter !== "all") {
-          filteredApplications = filteredApplications.filter(
-            (app) => app.funding_id === fundingFilter
-          );
+          allApplications = [];
         }
 
-        // Filter by status
-        if (statusFilter !== "all") {
-          filteredApplications = filteredApplications.filter(
-            (app) => app.status === statusFilter
-          );
-        }
-
-        // Filter by search
-        if (searchFilter) {
-          filteredApplications = filteredApplications.filter(
-            (app) =>
-              app.smme_name.toLowerCase().includes(searchFilter) ||
-              app.funding_name.toLowerCase().includes(searchFilter) ||
-              app.smme_sector.toLowerCase().includes(searchFilter)
-          );
-        }
-
-        displayApplications(filteredApplications);
-      }
-
-      function displayPendingApplications(applications) {
-        const pendingTable = document.getElementById("pendingTable");
-        const pendingCards = document.getElementById("pendingCards");
-
-        if (applications.length === 0) {
-          pendingTable.innerHTML = `
-            <div class="no-data">
-              <i class="fas fa-inbox"></i>
-              <p>No pending applications</p>
-              <p style="font-size: 0.9rem; margin-top: 0.5rem;">All applications have been reviewed</p>
+        populateFundingFilters();
+        displayApplications(allApplications);
+        updateHeaderStats();
+      } catch (error) {
+        console.error("Error loading applications data:", error);
+        document.getElementById("applicationsTable").innerHTML = `
+          <div class="p-10 text-center">
+            <div class="w-16 h-16 rounded-2xl bg-rose-600 text-white flex items-center justify-center mx-auto mb-4 shadow-sm">
+              <i class="fas fa-exclamation-triangle text-2xl"></i>
             </div>
-          `;
-          pendingCards.innerHTML = `
-            <div class="no-data">
-              <i class="fas fa-inbox"></i>
-              <p>No pending applications</p>
-            </div>
-          `;
-          return;
-        }
-
-        // Similar display logic to displayApplications but for pending only
-        pendingTable.innerHTML = `
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>SMME</th>
-                <th>Funding Opportunity</th>
-                <th>Amount Requested</th>
-                <th>Status</th>
-                <th>Applied</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${applications
-                .map(
-                  (app) => `
-                <tr>
-                  <td>
-                    <div style="font-weight: 600;">${app.smme_name}</div>
-                    <div style="font-size: 0.8rem; color: #666;">
-                      ${app.smme_sector} • ${app.smme_region}
-                    </div>
-                  </td>
-                  <td>${app.funding_name}</td>
-                  <td class="amount">R ${(
-                    app.form_data?.requestedAmount || 0
-                  ).toLocaleString()}</td>
-                  <td>
-                    <span class="status-badge status-${app.status
-                      .toLowerCase()
-                      .replace(" ", "-")}">
-                      ${app.status}
-                    </span>
-                  </td>
-                  <td>${new Date(app.submitted_at).toLocaleDateString()}</td>
-                  <td>
-                    <div class="actions">
-                      <button class="btn btn-primary btn-small" onclick="reviewApplication('${
-                        app.id
-                      }')">
-                        <i class="fas fa-eye"></i> Review
-                      </button>
-                      <button class="btn btn-success btn-small" onclick="updateApplicationStatus('${
-                        app.id
-                      }', 'Approved')">
-                        <i class="fas fa-check"></i> Approve
-                      </button>
-                      <button class="btn btn-danger btn-small" onclick="updateApplicationStatus('${
-                        app.id
-                      }', 'Rejected')">
-                        <i class="fas fa-times"></i> Reject
-                      </button>
-                      ${
-                        app.status === "Submitted"
-                          ? `
-                        <button class="btn btn-warning btn-small" onclick="updateApplicationStatus('${app.id}', 'In Review')">
-                          <i class="fas fa-search"></i> Start Review
-                        </button>
-                      `
-                          : ""
-                      }
-                    </div>
-                  </td>
-                </tr>
-              `
-                )
-                .join("")}
-            </tbody>
-          </table>
-        `;
-
-        // Mobile cards implementation would be similar
-      }
-
-      function displayApprovedApplications(applications) {
-        const approvedTable = document.getElementById("approvedTable");
-        const approvedCards = document.getElementById("approvedCards");
-
-        if (applications.length === 0) {
-          approvedTable.innerHTML = `
-            <div class="no-data">
-              <i class="fas fa-check-circle"></i>
-              <p>No approved applications yet</p>
-            </div>
-          `;
-          approvedCards.innerHTML = `
-            <div class="no-data">
-              <i class="fas fa-check-circle"></i>
-              <p>No approved applications yet</p>
-            </div>
-          `;
-          return;
-        }
-
-        // Similar display logic for approved applications
-        approvedTable.innerHTML = `
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>SMME</th>
-                <th>Funding Opportunity</th>
-                <th>Amount Requested</th>
-                <th>Approved Date</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${applications
-                .map(
-                  (app) => `
-                <tr>
-                  <td>
-                    <div style="font-weight: 600;">${app.smme_name}</div>
-                    <div style="font-size: 0.8rem; color: #666;">
-                      ${app.smme_sector} • ${app.smme_region}
-                    </div>
-                  </td>
-                  <td>${app.funding_name}</td>
-                  <td class="amount">R ${(
-                    app.form_data?.requestedAmount || 0
-                  ).toLocaleString()}</td>
-                  <td>${new Date(app.updated_at).toLocaleDateString()}</td>
-                  <td>
-                    <div class="actions">
-                      <button class="btn btn-primary btn-small" onclick="reviewApplication('${
-                        app.id
-                      }')">
-                        <i class="fas fa-eye"></i> View
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              `
-                )
-                .join("")}
-            </tbody>
-          </table>
-        `;
-      }
-
-      function displayRejectedApplications(applications) {
-        const rejectedTable = document.getElementById("rejectedTable");
-        const rejectedCards = document.getElementById("rejectedCards");
-
-        if (applications.length === 0) {
-          rejectedTable.innerHTML = `
-            <div class="no-data">
-              <i class="fas fa-times-circle"></i>
-              <p>No rejected applications yet</p>
-            </div>
-          `;
-          rejectedCards.innerHTML = `
-            <div class="no-data">
-              <i class="fas fa-times-circle"></i>
-              <p>No rejected applications yet</p>
-            </div>
-          `;
-          return;
-        }
-
-        // Similar display logic for rejected applications
-        rejectedTable.innerHTML = `
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>SMME</th>
-                <th>Funding Opportunity</th>
-                <th>Amount Requested</th>
-                <th>Rejected Date</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${applications
-                .map(
-                  (app) => `
-                <tr>
-                  <td>
-                    <div style="font-weight: 600;">${app.smme_name}</div>
-                    <div style="font-size: 0.8rem; color: #666;">
-                      ${app.smme_sector} • ${app.smme_region}
-                    </div>
-                  </td>
-                  <td>${app.funding_name}</td>
-                  <td class="amount">R ${(
-                    app.form_data?.requestedAmount || 0
-                  ).toLocaleString()}</td>
-                  <td>${new Date(app.updated_at).toLocaleDateString()}</td>
-                  <td>
-                    <div class="actions">
-                      <button class="btn btn-primary btn-small" onclick="reviewApplication('${
-                        app.id
-                      }')">
-                        <i class="fas fa-eye"></i> View
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              `
-                )
-                .join("")}
-            </tbody>
-          </table>
-        `;
-      }
-
-      function filterPendingApplications() {
-        const fundingFilter = document.getElementById(
-          "pendingFundingFilter"
-        ).value;
-        const searchFilter = document
-          .getElementById("searchPending")
-          .value.toLowerCase();
-
-        let filteredApplications = allApplications.filter(
-          (app) => app.status === "Submitted" || app.status === "In Review"
-        );
-
-        if (fundingFilter !== "all") {
-          filteredApplications = filteredApplications.filter(
-            (app) => app.funding_id === fundingFilter
-          );
-        }
-
-        if (searchFilter) {
-          filteredApplications = filteredApplications.filter(
-            (app) =>
-              app.smme_name.toLowerCase().includes(searchFilter) ||
-              app.funding_name.toLowerCase().includes(searchFilter)
-          );
-        }
-
-        displayPendingApplications(filteredApplications);
-      }
-
-      function filterApprovedApplications() {
-        const fundingFilter = document.getElementById(
-          "approvedFundingFilter"
-        ).value;
-        const searchFilter = document
-          .getElementById("searchApproved")
-          .value.toLowerCase();
-
-        let filteredApplications = allApplications.filter(
-          (app) => app.status === "Approved"
-        );
-
-        if (fundingFilter !== "all") {
-          filteredApplications = filteredApplications.filter(
-            (app) => app.funding_id === fundingFilter
-          );
-        }
-
-        if (searchFilter) {
-          filteredApplications = filteredApplications.filter(
-            (app) =>
-              app.smme_name.toLowerCase().includes(searchFilter) ||
-              app.funding_name.toLowerCase().includes(searchFilter)
-          );
-        }
-
-        displayApprovedApplications(filteredApplications);
-      }
-
-      function filterRejectedApplications() {
-        const fundingFilter = document.getElementById(
-          "rejectedFundingFilter"
-        ).value;
-        const searchFilter = document
-          .getElementById("searchRejected")
-          .value.toLowerCase();
-
-        let filteredApplications = allApplications.filter(
-          (app) => app.status === "Rejected"
-        );
-
-        if (fundingFilter !== "all") {
-          filteredApplications = filteredApplications.filter(
-            (app) => app.funding_id === fundingFilter
-          );
-        }
-
-        if (searchFilter) {
-          filteredApplications = filteredApplications.filter(
-            (app) =>
-              app.smme_name.toLowerCase().includes(searchFilter) ||
-              app.funding_name.toLowerCase().includes(searchFilter)
-          );
-        }
-
-        displayRejectedApplications(filteredApplications);
-      }
-
-      async function reviewApplication(appId) {
-        const application = allApplications.find((app) => app.id === appId);
-        if (!application) return;
-
-        const formData = application.form_data || {};
-        const funding = application.funding || {};
-        const smme = application.smme || {};
-
-        document.getElementById("reviewModalContent").innerHTML = `
-          <div class="application-details">
-            <h3>${application.smme_name}</h3>
-            <div class="detail-row">
-              <span class="detail-label">Funding Opportunity:</span>
-              <span class="detail-value">${application.funding_name}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Application Status:</span>
-              <span class="detail-value">
-                <span class="status-badge status-${application.status
-                  .toLowerCase()
-                  .replace(" ", "-")}">
-                  ${application.status}
-                </span>
-              </span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Amount Requested:</span>
-              <span class="detail-value amount">R ${(
-                formData.requestedAmount || 0
-              ).toLocaleString()}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Business Sector:</span>
-              <span class="detail-value">${application.smme_sector}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Operating Region:</span>
-              <span class="detail-value">${application.smme_region}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Years in Operation:</span>
-              <span class="detail-value">${application.smme_experience}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Number of Employees:</span>
-              <span class="detail-value">${application.smme_employees}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Application Date:</span>
-              <span class="detail-value">${new Date(
-                application.submitted_at
-              ).toLocaleString()}</span>
-            </div>
+            <p class="text-sm font-semibold text-slate-800 mb-1">Error loading applications</p>
+            <p class="text-xs text-slate-600">Please try refreshing the page</p>
           </div>
+        `;
+      }
+    }
 
-          ${
-            formData.projectSummary
-              ? `
-            <div class="form-data-section">
-              <h4><i class="fas fa-file-alt"></i> Project Summary</h4>
-              <p>${formData.projectSummary}</p>
-            </div>
-          `
-              : ""
-          }
+    function populateFundingFilters() {
+      const filters = ["fundingFilter", "pendingFundingFilter", "approvedFundingFilter", "rejectedFundingFilter"];
+      filters.forEach((filterId) => {
+        const filter = document.getElementById(filterId);
+        filter.innerHTML = '<option value="all">All Opportunities</option>';
+        funderFunding.forEach((funding) => {
+          const option = document.createElement("option");
+          option.value = funding.id;
+          option.textContent = funding.name;
+          filter.appendChild(option);
+        });
+      });
+    }
 
-          ${
-            formData.motivationLetter
-              ? `
-            <div class="form-data-section">
-              <h4><i class="fas fa-envelope"></i> Motivation Letter</h4>
-              <p style="white-space: pre-wrap;">${formData.motivationLetter}</p>
-            </div>
-          `
-              : ""
-          }
+    function getStatusStyle(status) {
+      const map = {
+        "Submitted": "bg-sky-100 text-sky-800 border-sky-300",
+        "In Review": "bg-amber-100 text-amber-800 border-amber-300",
+        "Approved": "bg-emerald-100 text-emerald-800 border-emerald-300",
+        "Rejected": "bg-rose-100 text-rose-800 border-rose-300",
+        "Needs More Info": "bg-amber-100 text-amber-900 border-amber-300",
+      };
+      return map[status] || "bg-slate-100 text-slate-700 border-slate-300";
+    }
 
-          ${
-            formData.uploadedDocuments && formData.uploadedDocuments.length > 0
-              ? `
-            <div class="form-data-section">
-              <h4><i class="fas fa-file-pdf"></i> Supporting Documents</h4>
-              <div class="documentation-grid">
-                ${formData.uploadedDocuments
-                  .map(
-                    (doc) => `
-                  <div class="doc-item verified">
-                    <i class="fas fa-file-pdf"></i>
-                    <div>${doc.name}</div>
-                    <small>${(doc.size / (1024 * 1024)).toFixed(2)} MB</small>
+    function renderEmptyState(container, message, sub) {
+      container.innerHTML = `
+        <div class="p-10 text-center">
+          <div class="w-16 h-16 rounded-2xl bg-white/70 border border-slate-300/60 flex items-center justify-center text-slate-500 mx-auto mb-4">
+            <i class="fas fa-inbox text-2xl"></i>
+          </div>
+          <p class="text-sm font-semibold text-slate-800 mb-1">${message}</p>
+          ${sub ? `<p class="text-xs text-slate-600">${sub}</p>` : ""}
+        </div>
+      `;
+    }
+
+    function renderApplications(container, applications, mode = "all") {
+      if (applications.length === 0) {
+        const msg = mode === "pending" ? "No pending applications" : mode === "approved" ? "No approved applications yet" : mode === "rejected" ? "No rejected applications yet" : "No applications found";
+        const sub = mode === "all" ? "Applications will appear here when SMMEs apply to your funding opportunities" : "";
+        renderEmptyState(container, msg, sub);
+        return;
+      }
+
+      container.innerHTML = applications.map((app) => {
+        const formData = app.form_data || {};
+        const statusStyle = getStatusStyle(app.status);
+        const canAct = app.status === "Submitted" || app.status === "In Review";
+        const canMarkReview = app.status === "Submitted";
+
+        return `
+          <div class="p-5 border-b border-slate-300/60 last:border-b-0 hover:bg-white/40 transition-colors">
+            <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
+              <div class="flex-1 min-w-0">
+                <div class="flex flex-wrap items-center gap-2 mb-2">
+                  <h3 class="font-display font-bold text-base text-slate-900">${escapeHtml(app.smme_name)}</h3>
+                  <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${statusStyle}">${app.status}</span>
+                </div>
+                <div class="text-xs text-slate-600 mb-3 flex flex-wrap gap-3">
+                  <span><i class="fas fa-industry text-[10px] mr-1"></i>${escapeHtml(app.smme_sector)}</span>
+                  <span><i class="fas fa-map-marker-alt text-[10px] mr-1"></i>${escapeHtml(app.smme_region)}</span>
+                  <span><i class="fas fa-calendar text-[10px] mr-1"></i>${new Date(app.submitted_at).toLocaleDateString()}</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <div class="rounded-lg bg-white/70 border border-slate-300/60 p-2.5">
+                    <div class="text-[10px] uppercase text-slate-500 mb-0.5">Funding</div>
+                    <div class="text-xs font-semibold text-slate-900 truncate">${escapeHtml(app.funding_name)}</div>
                   </div>
-                `
-                  )
-                  .join("")}
+                  <div class="rounded-lg bg-white/70 border border-slate-300/60 p-2.5">
+                    <div class="text-[10px] uppercase text-slate-500 mb-0.5">Amount Requested</div>
+                    <div class="text-xs font-semibold text-brand-700">R ${(formData.requestedAmount || 0).toLocaleString()}</div>
+                  </div>
+                  <div class="rounded-lg bg-white/70 border border-slate-300/60 p-2.5">
+                    <div class="text-[10px] uppercase text-slate-500 mb-0.5">Experience</div>
+                    <div class="text-xs font-semibold text-slate-900">${escapeHtml(app.smme_experience || "—")}</div>
+                  </div>
+                </div>
+              </div>
+              <div class="flex flex-wrap gap-2 shrink-0">
+                <button onclick="reviewApplication('${app.id}')" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold shadow-md shadow-brand-600/20 transition-colors flex items-center gap-1.5">
+                  <i class="fas fa-eye text-[10px]"></i>Review
+                </button>
+                ${canMarkReview ? `
+                  <button onclick="updateApplicationStatus('${app.id}', 'In Review')" class="px-4 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-semibold transition-colors flex items-center gap-1.5">
+                    <i class="fas fa-search text-[10px]"></i>Start Review
+                  </button>
+                ` : ""}
+                ${canAct ? `
+                  <button onclick="updateApplicationStatus('${app.id}', 'Approved')" class="px-4 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-semibold transition-colors flex items-center gap-1.5">
+                    <i class="fas fa-check text-[10px]"></i>Approve
+                  </button>
+                  <button onclick="updateApplicationStatus('${app.id}', 'Rejected')" class="px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 text-xs font-semibold transition-colors flex items-center gap-1.5">
+                    <i class="fas fa-times text-[10px]"></i>Reject
+                  </button>
+                ` : ""}
               </div>
             </div>
-          `
-              : ""
-          }
-
-          <div class="form-actions">
-            ${
-              application.status === "Submitted" ||
-              application.status === "In Review"
-                ? `
-              <button class="btn btn-danger" onclick="updateApplicationStatus('${
-                application.id
-              }', 'Rejected')">
-                <i class="fas fa-times"></i> Reject Application
-              </button>
-              <button class="btn btn-success" onclick="updateApplicationStatus('${
-                application.id
-              }', 'Approved')">
-                <i class="fas fa-check"></i> Approve Application
-              </button>
-              ${
-                application.status === "Submitted"
-                  ? `
-                <button class="btn btn-warning" onclick="updateApplicationStatus('${application.id}', 'In Review')">
-                  <i class="fas fa-search"></i> Mark as In Review
-                </button>
-              `
-                  : ""
-              }
-            `
-                : `
-              <button class="btn btn-primary" onclick="closeReviewModal()">
-                <i class="fas fa-times"></i> Close
-              </button>
-            `
-            }
           </div>
         `;
+      }).join("");
+    }
 
-        document.getElementById("reviewModal").classList.add("active");
+    function displayApplications(applications) {
+      const pendingCount = applications.filter((app) => app.status === "Submitted" || app.status === "In Review").length;
+      document.getElementById("pendingCount").textContent = pendingCount;
+      renderApplications(document.getElementById("applicationsTable"), applications, "all");
+    }
+
+    function displayPendingApplications(applications) {
+      renderApplications(document.getElementById("pendingTable"), applications, "pending");
+    }
+
+    function displayApprovedApplications(applications) {
+      renderApplications(document.getElementById("approvedTable"), applications, "approved");
+    }
+
+    function displayRejectedApplications(applications) {
+      renderApplications(document.getElementById("rejectedTable"), applications, "rejected");
+    }
+
+    function updateHeaderStats() {
+      const pendingCount = allApplications.filter((app) => app.status === "Submitted" || app.status === "In Review").length;
+      document.getElementById("pendingCount").textContent = pendingCount;
+    }
+
+    function switchTab(tabName) {
+      document.querySelectorAll(".tab-content").forEach((tab) => tab.classList.add("hidden"));
+      document.querySelectorAll(".tab-btn").forEach((tab) => {
+        tab.classList.remove("bg-brand-600", "text-white", "shadow-sm");
+        tab.classList.add("text-slate-700", "hover:bg-slate-100");
+      });
+
+      const tabEl = document.getElementById(`${tabName}Tab`);
+      if (tabEl) tabEl.classList.remove("hidden");
+
+      const tabBtn = document.getElementById(`tabBtn-${tabName}`);
+      if (tabBtn) {
+        tabBtn.classList.remove("text-slate-700", "hover:bg-slate-100");
+        tabBtn.classList.add("bg-brand-600", "text-white", "shadow-sm");
       }
 
-      function closeReviewModal() {
-        document.getElementById("reviewModal").classList.remove("active");
+      if (tabName === "pending") {
+        const filtered = allApplications.filter((app) => app.status === "Submitted" || app.status === "In Review");
+        displayPendingApplications(filtered);
+      } else if (tabName === "approved") {
+        const filtered = allApplications.filter((app) => app.status === "Approved");
+        displayApprovedApplications(filtered);
+      } else if (tabName === "rejected") {
+        const filtered = allApplications.filter((app) => app.status === "Rejected");
+        displayRejectedApplications(filtered);
+      } else {
+        displayApplications(allApplications);
+      }
+    }
+
+    function filterApplications() {
+      const fundingFilter = document.getElementById("fundingFilter").value;
+      const statusFilter = document.getElementById("statusFilter").value;
+      const searchFilter = document.getElementById("searchApplications").value.toLowerCase();
+
+      let filtered = allApplications;
+
+      if (fundingFilter !== "all") filtered = filtered.filter((app) => app.funding_id === fundingFilter);
+      if (statusFilter !== "all") filtered = filtered.filter((app) => app.status === statusFilter);
+      if (searchFilter) {
+        filtered = filtered.filter(
+          (app) =>
+            app.smme_name.toLowerCase().includes(searchFilter) ||
+            app.funding_name.toLowerCase().includes(searchFilter) ||
+            app.smme_sector.toLowerCase().includes(searchFilter)
+        );
       }
 
-      async function updateApplicationStatus(appId, newStatus) {
-        if (
-          !confirm(
-            `Are you sure you want to ${newStatus.toLowerCase()} this application?`
-          )
-        ) {
-          return;
+      displayApplications(filtered);
+    }
+
+    function filterPendingApplications() {
+      const fundingFilter = document.getElementById("pendingFundingFilter").value;
+      const searchFilter = document.getElementById("searchPending").value.toLowerCase();
+
+      let filtered = allApplications.filter((app) => app.status === "Submitted" || app.status === "In Review");
+      if (fundingFilter !== "all") filtered = filtered.filter((app) => app.funding_id === fundingFilter);
+      if (searchFilter) {
+        filtered = filtered.filter(
+          (app) =>
+            app.smme_name.toLowerCase().includes(searchFilter) ||
+            app.funding_name.toLowerCase().includes(searchFilter)
+        );
+      }
+      displayPendingApplications(filtered);
+    }
+
+    function filterApprovedApplications() {
+      const fundingFilter = document.getElementById("approvedFundingFilter").value;
+      const searchFilter = document.getElementById("searchApproved").value.toLowerCase();
+
+      let filtered = allApplications.filter((app) => app.status === "Approved");
+      if (fundingFilter !== "all") filtered = filtered.filter((app) => app.funding_id === fundingFilter);
+      if (searchFilter) {
+        filtered = filtered.filter(
+          (app) =>
+            app.smme_name.toLowerCase().includes(searchFilter) ||
+            app.funding_name.toLowerCase().includes(searchFilter)
+        );
+      }
+      displayApprovedApplications(filtered);
+    }
+
+    function filterRejectedApplications() {
+      const fundingFilter = document.getElementById("rejectedFundingFilter").value;
+      const searchFilter = document.getElementById("searchRejected").value.toLowerCase();
+
+      let filtered = allApplications.filter((app) => app.status === "Rejected");
+      if (fundingFilter !== "all") filtered = filtered.filter((app) => app.funding_id === fundingFilter);
+      if (searchFilter) {
+        filtered = filtered.filter(
+          (app) =>
+            app.smme_name.toLowerCase().includes(searchFilter) ||
+            app.funding_name.toLowerCase().includes(searchFilter)
+        );
+      }
+      displayRejectedApplications(filtered);
+    }
+
+    async function reviewApplication(appId) {
+      const application = allApplications.find((app) => app.id === appId);
+      if (!application) return;
+
+      const formData = application.form_data || {};
+      const statusStyle = getStatusStyle(application.status);
+      const canAct = application.status === "Submitted" || application.status === "In Review";
+      const canMarkReview = application.status === "Submitted";
+
+      document.getElementById("reviewModalContent").innerHTML = `
+        <div class="rounded-xl bg-brand-50 border border-brand-200 p-4 mb-4">
+          <h3 class="font-display font-bold text-lg text-slate-900 mb-3">${escapeHtml(application.smme_name)}</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-700">
+            <div><strong class="text-slate-900">Funding Opportunity:</strong> ${escapeHtml(application.funding_name)}</div>
+            <div><strong class="text-slate-900">Application Status:</strong> <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusStyle}">${application.status}</span></div>
+            <div><strong class="text-slate-900">Amount Requested:</strong> <span class="text-brand-700 font-bold">R ${(formData.requestedAmount || 0).toLocaleString()}</span></div>
+            <div><strong class="text-slate-900">Business Sector:</strong> ${escapeHtml(application.smme_sector)}</div>
+            <div><strong class="text-slate-900">Operating Region:</strong> ${escapeHtml(application.smme_region)}</div>
+            <div><strong class="text-slate-900">Years in Operation:</strong> ${escapeHtml(application.smme_experience)}</div>
+            <div><strong class="text-slate-900">Employees:</strong> ${escapeHtml(application.smme_employees)}</div>
+            <div><strong class="text-slate-900">Application Date:</strong> ${new Date(application.submitted_at).toLocaleString()}</div>
+          </div>
+        </div>
+
+        ${formData.projectSummary ? `
+          <div class="rounded-xl bg-white/70 border border-slate-300/60 p-4 mb-3">
+            <h4 class="font-display font-bold text-sm text-slate-900 mb-2 flex items-center gap-2">
+              <i class="fas fa-file-alt text-brand-600"></i>Project Summary
+            </h4>
+            <p class="text-xs text-slate-700 leading-relaxed">${escapeHtml(formData.projectSummary)}</p>
+          </div>
+        ` : ""}
+
+        ${formData.motivationLetter ? `
+          <div class="rounded-xl bg-white/70 border border-slate-300/60 p-4 mb-3">
+            <h4 class="font-display font-bold text-sm text-slate-900 mb-2 flex items-center gap-2">
+              <i class="fas fa-envelope text-brand-600"></i>Motivation Letter
+            </h4>
+            <p class="text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">${escapeHtml(formData.motivationLetter)}</p>
+          </div>
+        ` : ""}
+
+        ${formData.uploadedDocuments && formData.uploadedDocuments.length > 0 ? `
+          <div class="rounded-xl bg-white/70 border border-slate-300/60 p-4 mb-3">
+            <h4 class="font-display font-bold text-sm text-slate-900 mb-2 flex items-center gap-2">
+              <i class="fas fa-file-pdf text-brand-600"></i>Supporting Documents
+            </h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              ${formData.uploadedDocuments.map((doc) => `
+                <div class="flex items-center gap-2 p-2.5 rounded-lg bg-emerald-50 border border-emerald-200">
+                  <i class="fas fa-file-pdf text-emerald-700"></i>
+                  <div class="flex-1 min-w-0">
+                    <div class="text-xs font-semibold text-slate-900 truncate">${escapeHtml(doc.name)}</div>
+                    <div class="text-[10px] text-slate-500">${(doc.size / (1024 * 1024)).toFixed(2)} MB</div>
+                  </div>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        ` : ""}
+
+        <div class="flex flex-col sm:flex-row gap-2 justify-end pt-4 border-t border-slate-200 mt-4">
+          ${canAct ? `
+            <button onclick="updateApplicationStatus('${application.id}', 'Rejected')" class="px-4 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5">
+              <i class="fas fa-times text-[10px]"></i>Reject Application
+            </button>
+            <button onclick="updateApplicationStatus('${application.id}', 'Approved')" class="px-4 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5">
+              <i class="fas fa-check text-[10px]"></i>Approve Application
+            </button>
+            ${canMarkReview ? `
+              <button onclick="updateApplicationStatus('${application.id}', 'In Review')" class="px-4 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5">
+                <i class="fas fa-search text-[10px]"></i>Mark as In Review
+              </button>
+            ` : ""}
+          ` : `
+            <button onclick="closeReviewModal()" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors">
+              Close
+            </button>
+          `}
+        </div>
+      `;
+
+      document.getElementById("reviewModal").classList.add("active");
+    }
+
+    function closeReviewModal() {
+      document.getElementById("reviewModal").classList.remove("active");
+    }
+
+    async function updateApplicationStatus(appId, newStatus) {
+      if (!confirm(`Are you sure you want to ${newStatus.toLowerCase()} this application?`)) return;
+
+      try {
+        const { error } = await supabaseClient
+          .from("applications")
+          .update({ status: newStatus, updated_at: new Date().toISOString() })
+          .eq("id", appId);
+
+        if (error) throw error;
+
+        const appIndex = allApplications.findIndex((app) => app.id === appId);
+        if (appIndex !== -1) {
+          allApplications[appIndex].status = newStatus;
+          allApplications[appIndex].updated_at = new Date().toISOString();
         }
 
-        try {
-          const { error } = await supabaseClient
-            .from("applications")
-            .update({
-              status: newStatus,
-              updated_at: new Date().toISOString(),
-            })
-            .eq("id", appId);
+        const currentTabBtn = document.querySelector(".tab-btn.bg-brand-600");
+        const currentTab = currentTabBtn ? currentTabBtn.id.replace("tabBtn-", "") : "all";
+        switchTab(currentTab);
+        updateHeaderStats();
+        closeReviewModal();
 
-          if (error) throw error;
+        alert(`Application ${newStatus.toLowerCase()} successfully!`);
+      } catch (error) {
+        console.error("Error updating application status:", error);
+        alert("Error updating application status. Please try again.");
+      }
+    }
 
-          // Update local data
-          const appIndex = allApplications.findIndex((app) => app.id === appId);
-          if (appIndex !== -1) {
-            allApplications[appIndex].status = newStatus;
-            allApplications[appIndex].updated_at = new Date().toISOString();
+    function escapeHtml(s) {
+      if (s === null || s === undefined) return "";
+      return String(s)
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    function logout() {
+      localStorage.removeItem("fundfinder_user");
+      window.location.href = "index.html";
+    }
+
+    function initMobileMenu() {
+      const btn = document.getElementById("mobile-menu-btn");
+      const menu = document.getElementById("mobile-menu");
+      const icon = document.getElementById("mobile-menu-icon");
+      if (btn) {
+        btn.addEventListener("click", () => {
+          const hidden = menu.classList.contains("hidden");
+          if (hidden) {
+            menu.classList.remove("hidden");
+            icon.classList.remove("fa-bars");
+            icon.classList.add("fa-times");
+          } else {
+            menu.classList.add("hidden");
+            icon.classList.remove("fa-times");
+            icon.classList.add("fa-bars");
           }
-
-          // Refresh displays
-          const currentTab = document
-            .querySelector(".tab.active")
-            .getAttribute("onclick")
-            .replace("switchTab('", "")
-            .replace("')", "");
-          switchTab(currentTab);
-          updateHeaderStats();
-          closeReviewModal();
-
-          alert(`Application ${newStatus.toLowerCase()} successfully!`);
-        } catch (error) {
-          console.error("Error updating application status:", error);
-          alert("Error updating application status. Please try again.");
-        }
+        });
       }
+    }
 
-      function logout() {
-        localStorage.removeItem("fundfinder_user");
-        window.location.href = "index.html";
+    window.onclick = function (event) {
+      if (event.target === document.getElementById("reviewModal")) {
+        closeReviewModal();
       }
-
-      // Close modal when clicking outside
-      window.onclick = function (event) {
-        if (event.target === document.getElementById("reviewModal")) {
-          closeReviewModal();
-        }
-      };
-    </script>
-  </body>
+    };
+  </script>
+</body>
 </html>

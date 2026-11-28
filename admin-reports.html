@@ -1,1413 +1,879 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FundFinder - Reports & Analytics</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <style>
-      /* CSS Variables for Orange Design System */
-      :root {
-        --color-white: #ffffff;
-        --color-orange: #ff8c42; /* Softer orange */
-        --color-orange-medium: #ffa366;
-        --color-orange-light: #ffc8a8;
-        --color-orange-very-light: #ffe8db;
-        --color-dark: #333333;
-        --color-gray: #666666;
-        --color-gray-light: #f5f5f5;
-        --color-gray-border: #e0e0e0;
-        --font-heading: "Archivo Black", sans-serif;
-        --font-body: "Archivo", sans-serif;
-        --border-radius-sm: 4px;
-        --border-radius-md: 8px;
-        --border-radius-lg: 12px;
-        --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
-        --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
-        --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
-        --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-      }
-
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      body {
-        font-family: var(--font-body);
-        line-height: 1.6;
-        color: var(--color-dark);
-        background: var(--color-gray-light);
-      }
-
-      /* Header */
-      .header {
-        background: var(--color-white);
-        padding: 1rem 2rem;
-        border-bottom: 2px solid var(--color-orange);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: var(--shadow-sm);
-      }
-
-      .logo {
-        font-weight: 700;
-        font-size: 1.8rem;
-        color: var(--color-orange);
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-family: var(--font-heading);
-      }
-
-      .nav-links {
-        display: flex;
-        gap: 2rem;
-        align-items: center;
-      }
-
-      .nav-links a {
-        color: var(--color-dark);
-        text-decoration: none;
-        font-weight: 600;
-        padding: 0.5rem 1rem;
-        border-radius: var(--border-radius-md);
-        transition: var(--transition);
-        position: relative;
-      }
-
-      .nav-links a:hover,
-      .nav-links a.active {
-        color: var(--color-orange);
-      }
-
-      .nav-links a.active::after {
-        content: "";
-        position: absolute;
-        bottom: -2px;
-        left: 1rem;
-        right: 1rem;
-        height: 3px;
-        background: var(--color-orange);
-        border-radius: var(--border-radius-sm);
-      }
-
-      .user-menu {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-      }
-
-      .user-info {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-
-      .user-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: var(--color-orange);
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-      }
-
-      .user-details {
-        display: flex;
-        flex-direction: column;
-      }
-
-      .user-name {
-        font-weight: 600;
-      }
-
-      .user-role {
-        font-size: 0.8rem;
-        color: var(--color-gray);
-      }
-
-      .logout-btn {
-        background: #ff4757;
-        color: white;
-        border: none;
-        padding: 0.6rem 1.2rem;
-        border-radius: var(--border-radius-md);
-        cursor: pointer;
-        font-weight: 600;
-        transition: var(--transition);
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-
-      .logout-btn:hover {
-        background: #ff3742;
-        transform: translateY(-2px);
-      }
-
-      /* Main Content */
-      .main-content {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 2rem;
-      }
-
-      .access-denied {
-        text-align: center;
-        padding: 4rem 2rem;
-        background: var(--color-white);
-        border-radius: var(--border-radius-lg);
-        box-shadow: var(--shadow-md);
-      }
-
-      .access-denied h2 {
-        color: #dc2626;
-        margin-bottom: 1rem;
-        font-family: var(--font-heading);
-      }
-
-      .access-denied p {
-        color: var(--color-gray);
-        margin-bottom: 2rem;
-      }
-
-      .page-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 2rem;
-      }
-
-      .page-header h1 {
-        color: var(--color-orange);
-        font-size: 2.5rem;
-        font-family: var(--font-heading);
-      }
-
-      /* Report Controls */
-      .report-controls {
-        background: var(--color-white);
-        padding: 2rem;
-        border-radius: var(--border-radius-lg);
-        box-shadow: var(--shadow-md);
-        margin-bottom: 2rem;
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1.5rem;
-        border-left: 4px solid var(--color-orange);
-        transition: var(--transition);
-      }
-
-      .report-controls:hover {
-        box-shadow: var(--shadow-lg);
-      }
-
-      .control-group {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-      }
-
-      .control-group label {
-        font-weight: 600;
-        color: var(--color-dark);
-        font-size: 0.9rem;
-      }
-
-      select,
-      input {
-        padding: 0.75rem;
-        border: 2px solid var(--color-gray-border);
-        border-radius: var(--border-radius-md);
-        background: var(--color-gray-light);
-        font-size: 0.9rem;
-        font-family: var(--font-body);
-        transition: var(--transition);
-      }
-
-      select:focus,
-      input:focus {
-        outline: none;
-        border-color: var(--color-orange);
-        background: var(--color-white);
-        box-shadow: 0 0 0 3px rgba(255, 140, 66, 0.1);
-      }
-
-      .btn {
-        padding: 0.75rem 1.5rem;
-        border: none;
-        border-radius: var(--border-radius-md);
-        font-weight: 600;
-        cursor: pointer;
-        transition: var(--transition);
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-family: var(--font-body);
-      }
-
-      .btn-primary {
-        background: var(--color-orange);
-        color: white;
-      }
-
-      .btn-primary:hover {
-        background: var(--color-orange-medium);
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-sm);
-      }
-
-      .btn-secondary {
-        background: var(--color-gray);
-        color: white;
-      }
-
-      .btn-secondary:hover {
-        background: #5a6268;
-        transform: translateY(-2px);
-      }
-
-      .btn-success {
-        background: #10b981;
-        color: white;
-      }
-
-      .btn-success:hover {
-        background: #059669;
-        transform: translateY(-2px);
-      }
-
-      /* Report Cards */
-      .report-cards {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 2rem;
-      }
-
-      .report-card {
-        background: var(--color-white);
-        padding: 2rem;
-        border-radius: var(--border-radius-lg);
-        box-shadow: var(--shadow-md);
-        text-align: center;
-        border-left: 4px solid var(--color-orange);
-        transition: var(--transition);
-      }
-
-      .report-card:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-lg);
-      }
-
-      .report-card h3 {
-        font-size: 2rem;
-        color: var(--color-orange);
-        margin-bottom: 0.5rem;
-      }
-
-      .report-card p {
-        color: var(--color-gray);
-        font-weight: 500;
-      }
-
-      .report-card .trend {
-        margin-top: 0.5rem;
-        font-size: 0.9rem;
-        font-weight: 600;
-      }
-
-      .trend.up {
-        color: #10b981;
-      }
-
-      .trend.down {
-        color: #ef4444;
-      }
-
-      /* Charts Grid */
-      .charts-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 2rem;
-        margin-bottom: 2rem;
-      }
-
-      .chart-container {
-        background: var(--color-white);
-        padding: 2rem;
-        border-radius: var(--border-radius-lg);
-        box-shadow: var(--shadow-md);
-        transition: var(--transition);
-      }
-
-      .chart-container:hover {
-        box-shadow: var(--shadow-lg);
-      }
-
-      .chart-container h3 {
-        margin-bottom: 1.5rem;
-        color: var(--color-dark);
-        font-size: 1.3rem;
-        font-family: var(--font-heading);
-      }
-
-      /* Data Tables */
-      .data-section {
-        background: var(--color-white);
-        padding: 2rem;
-        border-radius: var(--border-radius-lg);
-        box-shadow: var(--shadow-md);
-        margin-bottom: 2rem;
-        transition: var(--transition);
-      }
-
-      .data-section:hover {
-        box-shadow: var(--shadow-lg);
-      }
-
-      .data-section h3 {
-        margin-bottom: 1.5rem;
-        color: var(--color-dark);
-        font-family: var(--font-heading);
-      }
-
-      .data-table {
-        width: 100%;
-        border-collapse: collapse;
-      }
-
-      .data-table th,
-      .data-table td {
-        padding: 1rem;
-        text-align: left;
-        border-bottom: 1px solid var(--color-gray-border);
-      }
-
-      .data-table th {
-        background: var(--color-orange-very-light);
-        font-weight: 600;
-        color: var(--color-orange);
-        font-family: var(--font-heading);
-      }
-
-      .data-table tr:hover {
-        background: var(--color-gray-light);
-      }
-
-      .loading {
-        text-align: center;
-        padding: 3rem;
-      }
-
-      .spinner {
-        border: 4px solid rgba(0, 0, 0, 0.1);
-        border-left-color: var(--color-orange);
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        animation: spin 1s linear infinite;
-        margin: 0 auto 1rem;
-      }
-
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reports &amp; Analytics — FundFinder Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#fff3e0', 100: '#ffe0b2', 200: '#ffcc80', 300: '#ffb74d',
+              400: '#ffa726', 500: '#ff6d00', 600: '#e65100', 700: '#bf360c',
+              800: '#9a3412', 900: '#7c2d12',
+            },
+            slate: { 850: '#151e32', 900: '#0f172a', 950: '#090d16' }
+          },
+          boxShadow: {
+            'glass': '0 4px 30px rgba(15, 23, 42, 0.05)',
+            'elevated': '0 20px 40px -15px rgba(15, 23, 42, 0.09)',
+          }
         }
       }
+    };
+  </script>
+  <style>
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #f8fafc; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-      .export-actions {
-        display: flex;
-        gap: 1rem;
-        justify-content: flex-end;
-        margin-top: 2rem;
-      }
+    .spinner {
+      border: 3px solid rgba(230, 81, 0, 0.15);
+      border-left-color: #e65100;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-      /* PDF Styles */
-      .pdf-section {
-        margin-bottom: 20px;
-        page-break-inside: avoid;
-      }
+    canvas { max-height: 280px; }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-900 font-sans antialiased selection:bg-brand-600 selection:text-white min-h-screen flex flex-col">
 
-      .pdf-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin: 10px 0;
-        font-size: 10px;
-      }
+  <!-- Sticky Header -->
+  <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-glass">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-20">
 
-      .pdf-table th,
-      .pdf-table td {
-        border: 1px solid #ddd;
-        padding: 6px;
-        text-align: left;
-      }
-
-      .pdf-table th {
-        background-color: #ffe8db;
-        font-weight: bold;
-      }
-
-      @media (max-width: 768px) {
-        .header {
-          flex-direction: column;
-          gap: 1rem;
-          padding: 1rem;
-        }
-
-        .nav-links {
-          gap: 0.5rem;
-        }
-
-        .nav-links a {
-          padding: 0.5rem;
-          font-size: 0.9rem;
-        }
-
-        .main-content {
-          padding: 1rem;
-        }
-
-        .charts-grid {
-          grid-template-columns: 1fr;
-        }
-
-        .report-controls {
-          grid-template-columns: 1fr;
-        }
-
-        .report-cards {
-          grid-template-columns: 1fr;
-        }
-
-        .page-header {
-          flex-direction: column;
-          gap: 1rem;
-          text-align: center;
-        }
-
-        .page-header h1 {
-          font-size: 2rem;
-        }
-
-        .export-actions {
-          flex-direction: column;
-          align-items: stretch;
-        }
-
-        .btn {
-          justify-content: center;
-        }
-      }
-
-      @media (max-width: 480px) {
-        .report-card,
-        .chart-container,
-        .data-section {
-          padding: 1.5rem;
-        }
-
-        .report-card h3 {
-          font-size: 1.5rem;
-        }
-
-        .data-table th,
-        .data-table td {
-          padding: 0.75rem 0.5rem;
-          font-size: 0.8rem;
-        }
-
-        .report-controls {
-          padding: 1.5rem;
-        }
-
-        .control-group {
-          width: 100%;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <!-- Header -->
-    <div class="header">
-      <div class="logo">
-        <i class="fas fa-hand-holding-usd"></i>
-        FundFinder Admin
-      </div>
-      <div class="nav-links">
-        <a href="admin-dashboard.html">Dashboard</a>
-        <a href="admin-users.html">User Management</a>
-        <a href="admin-reports.html" class="active">Reports & Analytics</a>
-        <a href="admin-funding.html">Funding Management</a>
-      </div>
-      <div class="user-menu">
-        <div class="user-info">
-          <div class="user-avatar" id="user-avatar">A</div>
-          <div class="user-details">
-            <div class="user-name" id="userName">Admin</div>
-            <div class="user-role">Administrator</div>
+        <a href="admin-dashboard.html" class="flex items-center gap-2.5 group">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-600 to-brand-500 flex items-center justify-center text-white shadow-md shadow-brand-600/25 group-hover:scale-105 transition-transform">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+            </svg>
           </div>
+          <div class="flex flex-col">
+            <div class="flex items-center gap-1.5">
+              <span class="font-display font-extrabold text-xl tracking-tight text-slate-900">FundFinder</span>
+              <span class="w-2 h-2 rounded-full bg-brand-600"></span>
+            </div>
+            <span class="text-[10px] uppercase tracking-widest font-bold text-brand-600 -mt-1">Admin Portal</span>
+          </div>
+        </a>
+
+        <nav class="hidden lg:flex items-center gap-7">
+          <a href="admin-dashboard.html" class="text-sm font-medium text-slate-600 hover:text-brand-600 transition-colors">Dashboard</a>
+          <a href="admin-users.html" class="text-sm font-medium text-slate-600 hover:text-brand-600 transition-colors">User Management</a>
+          <a href="admin-reports.html" class="text-sm font-semibold text-brand-600 relative pb-1">
+            Reports &amp; Analytics
+            <span class="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-600 rounded-full"></span>
+          </a>
+          <a href="admin-funding.html" class="text-sm font-medium text-slate-600 hover:text-brand-600 transition-colors">Funding Management</a>
+        </nav>
+
+        <div class="hidden lg:flex items-center gap-3">
+          <div class="flex items-center gap-2.5 pl-3 pr-4 py-1.5 rounded-xl bg-slate-50 border border-slate-200">
+            <div id="user-avatar" class="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-600 to-brand-500 text-white flex items-center justify-center font-bold text-sm shadow-sm">A</div>
+            <div class="flex flex-col">
+              <div id="userName" class="text-xs font-semibold text-slate-900 leading-tight">Admin</div>
+              <div class="text-[10px] text-slate-500">System Administrator</div>
+            </div>
+          </div>
+          <button onclick="logout()" class="px-4 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-sm font-semibold transition-colors flex items-center gap-2">
+            <i class="fas fa-sign-out-alt text-xs"></i>
+            <span>Logout</span>
+          </button>
         </div>
-        <button class="logout-btn" onclick="logout()">
-          <i class="fas fa-sign-out-alt"></i> Logout
-        </button>
+
+        <div class="lg:hidden flex items-center">
+          <button id="mobile-menu-btn" aria-label="Toggle Menu" class="p-2.5 rounded-xl text-slate-700 hover:bg-slate-100 transition-colors">
+            <i class="fas fa-bars text-xl" id="mobile-menu-icon"></i>
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="main-content">
-      <div id="accessDenied" class="access-denied" style="display: none">
-        <h2>Access Denied</h2>
-        <p>You need administrator privileges to access this page.</p>
-        <div style="display: flex; gap: 1rem; justify-content: center">
-          <a href="index.html" class="btn btn-primary">Go to Main Site</a>
-          <a href="login.html" class="btn btn-secondary">Login as Admin</a>
+    <div id="mobile-menu" class="hidden lg:hidden bg-white border-b border-slate-200 px-4 pt-2 pb-6 space-y-2 shadow-xl">
+      <a href="admin-dashboard.html" class="block px-3 py-2.5 rounded-xl text-base font-medium text-slate-700 hover:bg-brand-50 hover:text-brand-600">Dashboard</a>
+      <a href="admin-users.html" class="block px-3 py-2.5 rounded-xl text-base font-medium text-slate-700 hover:bg-brand-50 hover:text-brand-600">User Management</a>
+      <a href="admin-reports.html" class="block px-3 py-2.5 rounded-xl text-base font-semibold text-brand-600 bg-brand-50">Reports &amp; Analytics</a>
+      <a href="admin-funding.html" class="block px-3 py-2.5 rounded-xl text-base font-medium text-slate-700 hover:bg-brand-50 hover:text-brand-600">Funding Management</a>
+      <div class="pt-3 border-t border-slate-100 flex flex-col gap-2.5">
+        <div class="flex items-center gap-2.5 px-3 py-2">
+          <div id="user-avatar-mobile" class="w-9 h-9 rounded-lg bg-gradient-to-br from-brand-600 to-brand-500 text-white flex items-center justify-center font-bold text-sm">A</div>
+          <div class="flex flex-col">
+            <div id="userName-mobile" class="text-sm font-semibold text-slate-900 leading-tight">Admin</div>
+            <div class="text-[10px] text-slate-500">System Administrator</div>
+          </div>
+        </div>
+        <button onclick="logout()" class="w-full py-2.5 text-center text-sm font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-xl">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+      <!-- Access Denied -->
+      <div id="accessDenied" class="hidden rounded-2xl bg-slate-200/60 backdrop-blur-sm border border-rose-300/70 shadow-sm p-10 text-center">
+        <div class="w-16 h-16 rounded-2xl bg-rose-600 text-white flex items-center justify-center mx-auto mb-4 shadow-sm">
+          <i class="fas fa-shield-halved text-2xl"></i>
+        </div>
+        <h2 class="font-display font-extrabold text-xl text-slate-900 mb-2">Access Denied</h2>
+        <p class="text-sm text-slate-700 mb-6">You need administrator privileges to access this page.</p>
+        <div class="flex flex-wrap gap-3 justify-center">
+          <a href="index.html" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-sm font-semibold shadow-md shadow-brand-600/20 transition-colors">
+            <i class="fas fa-home mr-1.5"></i>Go to Main Site
+          </a>
+          <a href="login.html" class="px-5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 text-sm font-semibold transition-colors">
+            <i class="fas fa-sign-in-alt mr-1.5"></i>Login as Admin
+          </a>
         </div>
       </div>
 
-      <div id="adminContent" style="display: none">
-        <div class="page-header">
-          <h1>Reports & Analytics</h1>
-          <div class="last-updated" id="lastUpdated">Loading...</div>
+      <!-- Admin Content -->
+      <div id="adminContent" class="hidden space-y-6">
+
+        <!-- Page Header -->
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-widest text-brand-700">Analytics</span>
+            <h1 class="font-display font-extrabold text-3xl sm:text-4xl text-slate-900 mt-2">Reports &amp; Analytics</h1>
+          </div>
+          <div id="lastUpdated" class="text-xs font-medium text-slate-600 px-4 py-2 rounded-xl bg-white/80 border border-slate-300/60 shadow-sm">Loading...</div>
         </div>
 
         <!-- Report Controls -->
-        <div class="report-controls">
-          <div class="control-group">
-            <label for="reportPeriod">Report Period</label>
-            <select id="reportPeriod" onchange="generateReports()">
-              <option value="7days">Last 7 Days</option>
-              <option value="30days" selected>Last 30 Days</option>
-              <option value="90days">Last 90 Days</option>
-              <option value="1year">Last Year</option>
-              <option value="all">All Time</option>
-            </select>
-          </div>
-
-          <div class="control-group">
-            <label for="reportType">Report Type</label>
-            <select id="reportType" onchange="generateReports()">
-              <option value="overview">Overview</option>
-              <option value="users">User Analytics</option>
-              <option value="funding">Funding Performance</option>
-              <option value="matches">Matching Analytics</option>
-            </select>
-          </div>
-
-          <div class="control-group">
-            <label for="userRole">User Role</label>
-            <select id="userRole" onchange="generateReports()">
-              <option value="all">All Roles</option>
-              <option value="SMME">SMME</option>
-              <option value="FUNDER">Funder</option>
-            </select>
-          </div>
-
-          <div class="control-group">
-            <label>&nbsp;</label>
-            <button class="btn btn-success" onclick="exportReport()">
-              <i class="fas fa-download"></i> Export Report
-            </button>
+        <div class="rounded-2xl bg-slate-200/60 backdrop-blur-sm border border-slate-300/60 shadow-sm p-5">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <div>
+              <label for="reportPeriod" class="block text-xs font-semibold text-slate-800 mb-1.5">Report Period</label>
+              <select id="reportPeriod" onchange="generateReports()"
+                class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white/80 text-sm text-slate-900 focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100 transition">
+                <option value="7days">Last 7 Days</option>
+                <option value="30days" selected>Last 30 Days</option>
+                <option value="90days">Last 90 Days</option>
+                <option value="1year">Last Year</option>
+                <option value="all">All Time</option>
+              </select>
+            </div>
+            <div>
+              <label for="reportType" class="block text-xs font-semibold text-slate-800 mb-1.5">Report Type</label>
+              <select id="reportType" onchange="generateReports()"
+                class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white/80 text-sm text-slate-900 focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100 transition">
+                <option value="overview">Overview</option>
+                <option value="users">User Analytics</option>
+                <option value="funding">Funding Performance</option>
+                <option value="matches">Matching Analytics</option>
+              </select>
+            </div>
+            <div>
+              <label for="userRole" class="block text-xs font-semibold text-slate-800 mb-1.5">User Role</label>
+              <select id="userRole" onchange="generateReports()"
+                class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white/80 text-sm text-slate-900 focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100 transition">
+                <option value="all">All Roles</option>
+                <option value="SMME">SMME</option>
+                <option value="FUNDER">Funder</option>
+              </select>
+            </div>
+            <div class="flex md:justify-end">
+              <button onclick="exportReport()" class="w-full md:w-auto px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-2">
+                <i class="fas fa-download text-xs"></i>
+                Export Report
+              </button>
+            </div>
           </div>
         </div>
 
         <!-- Report Cards -->
-        <div class="report-cards" id="reportCards">
-          <div class="loading">
-            <div class="spinner"></div>
-            <p>Loading report data...</p>
+        <div id="reportCards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div class="col-span-full rounded-2xl bg-slate-200/60 backdrop-blur-sm border border-slate-300/60 p-10 text-center">
+            <div class="spinner mx-auto mb-3"></div>
+            <p class="text-sm text-slate-700">Loading report data...</p>
           </div>
         </div>
 
-        <!-- Charts -->
-        <div class="charts-grid">
-          <div class="chart-container">
-            <h3>User Registration Trends</h3>
+        <!-- Charts Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="rounded-2xl bg-slate-200/60 backdrop-blur-sm border border-slate-300/60 shadow-sm p-6">
+            <div class="flex items-center gap-2.5 mb-4">
+              <div class="w-10 h-10 rounded-lg bg-brand-600 text-white flex items-center justify-center shadow-sm">
+                <i class="fas fa-chart-line text-sm"></i>
+              </div>
+              <h3 class="font-display font-bold text-base text-slate-900">User Registration Trends</h3>
+            </div>
             <canvas id="registrationsChart"></canvas>
           </div>
-          <div class="chart-container">
-            <h3>Funding Match Success Rates</h3>
+          <div class="rounded-2xl bg-slate-200/60 backdrop-blur-sm border border-slate-300/60 shadow-sm p-6">
+            <div class="flex items-center gap-2.5 mb-4">
+              <div class="w-10 h-10 rounded-lg bg-emerald-600 text-white flex items-center justify-center shadow-sm">
+                <i class="fas fa-chart-bar text-sm"></i>
+              </div>
+              <h3 class="font-display font-bold text-base text-slate-900">Funding Match Success Rates</h3>
+            </div>
             <canvas id="successRatesChart"></canvas>
           </div>
         </div>
 
         <!-- User Activity Table -->
-        <div class="data-section">
-          <h3>Recent User Activity</h3>
-          <div id="userActivityTable">
-            <div class="loading">
-              <div class="spinner"></div>
-              <p>Loading user activity...</p>
+        <div class="rounded-2xl bg-slate-200/60 backdrop-blur-sm border border-slate-300/60 shadow-sm overflow-hidden">
+          <div class="flex items-center gap-2.5 px-6 py-4 border-b border-slate-300/60">
+            <div class="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-sm">
+              <i class="fas fa-users text-sm"></i>
+            </div>
+            <h3 class="font-display font-bold text-base text-slate-900">Recent User Activity</h3>
+          </div>
+          <div id="userActivityTable" class="overflow-x-auto">
+            <div class="p-10 text-center">
+              <div class="spinner mx-auto mb-3"></div>
+              <p class="text-sm text-slate-700">Loading user activity...</p>
             </div>
           </div>
         </div>
 
         <!-- Funding Performance Table -->
-        <div class="data-section">
-          <h3>Funding Opportunity Performance</h3>
-          <div id="fundingPerformanceTable">
-            <div class="loading">
-              <div class="spinner"></div>
-              <p>Loading funding performance...</p>
+        <div class="rounded-2xl bg-slate-200/60 backdrop-blur-sm border border-slate-300/60 shadow-sm overflow-hidden">
+          <div class="flex items-center gap-2.5 px-6 py-4 border-b border-slate-300/60">
+            <div class="w-10 h-10 rounded-lg bg-violet-600 text-white flex items-center justify-center shadow-sm">
+              <i class="fas fa-hand-holding-usd text-sm"></i>
+            </div>
+            <h3 class="font-display font-bold text-base text-slate-900">Funding Opportunity Performance</h3>
+          </div>
+          <div id="fundingPerformanceTable" class="overflow-x-auto">
+            <div class="p-10 text-center">
+              <div class="spinner mx-auto mb-3"></div>
+              <p class="text-sm text-slate-700">Loading funding performance...</p>
             </div>
           </div>
         </div>
 
         <!-- Export Actions -->
-        <div class="export-actions">
-          <button class="btn btn-primary" onclick="exportFullReportPDF()">
-            <i class="fas fa-file-pdf"></i> Export Full Report (PDF)
+        <div class="flex flex-col sm:flex-row gap-3 justify-end pt-2">
+          <button onclick="exportFullReportPDF()" class="px-5 py-3 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-sm font-semibold shadow-md shadow-brand-600/20 transition-all flex items-center justify-center gap-2">
+            <i class="fas fa-file-pdf text-xs"></i>
+            Export Full Report (PDF)
           </button>
-          <button class="btn btn-success" onclick="exportData()">
-            <i class="fas fa-file-csv"></i> Export Raw Data (CSV)
+          <button onclick="exportData()" class="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-2">
+            <i class="fas fa-file-csv text-xs"></i>
+            Export Raw Data (CSV)
           </button>
         </div>
+
       </div>
     </div>
+  </main>
 
-    <script>
-      const SUPABASE_URL = "https://ovvvwbtexnbxzacizokr.supabase.co";
-      const SUPABASE_ANON_KEY =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dnZ3YnRleG5ieHphY2l6b2tyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1ODQ5OTEsImV4cCI6MjA3OTE2MDk5MX0.Ii21cw1Iyops8Zo784P-25NKz2m-TCyJ2zWwI4V1kcE";
+  <script>
+    // ============================================================
+    // ⚠️ BACKEND CONTRACT — preserved from original
+    // ============================================================
+    const SUPABASE_URL = "https://ovvvwbtexnbxzacizokr.supabase.co";
+    const SUPABASE_ANON_KEY =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dnZ3YnRleG5ieHphY2l6b2tyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1ODQ5OTEsImV4cCI6MjA3OTE2MDk5MX0.Ii21cw1Iyops8Zo784P-25NKz2m-TCyJ2zWwI4V1kcE";
 
-      const supabaseClient = window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_ANON_KEY
-      );
-      let reportData = {};
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    let reportData = {};
+    let registrationsChartInstance = null;
+    let successRatesChartInstance = null;
 
-      // Check admin authentication using main user session
-      document.addEventListener("DOMContentLoaded", async () => {
-        await checkAdminAuth();
+    document.addEventListener("DOMContentLoaded", async () => {
+      await checkAdminAuth();
+      initMobileMenu();
+    });
+
+    async function checkAdminAuth() {
+      const userData = localStorage.getItem("fundfinder_user");
+      if (!userData) { showAccessDenied(); return; }
+      const user = JSON.parse(userData);
+
+      const { data: userRecord, error } = await supabaseClient
+        .from("users").select("*").eq("id", user.id).single();
+
+      if (error || !userRecord || userRecord.role !== "ADMIN" || !userRecord.active) {
+        showAccessDenied();
+        return;
+      }
+
+      const username = user.email;
+      const initial = user.email.charAt(0).toUpperCase();
+
+      document.getElementById("userName").textContent = username;
+      document.getElementById("user-avatar").textContent = initial;
+      const unameMobile = document.getElementById("userName-mobile");
+      const uavatarMobile = document.getElementById("user-avatar-mobile");
+      if (unameMobile) unameMobile.textContent = username;
+      if (uavatarMobile) uavatarMobile.textContent = initial;
+
+      document.getElementById("adminContent").classList.remove("hidden");
+
+      await generateReports();
+    }
+
+    function showAccessDenied() {
+      document.getElementById("accessDenied").classList.remove("hidden");
+      document.getElementById("adminContent").classList.add("hidden");
+    }
+
+    async function generateReports() {
+      const period = document.getElementById("reportPeriod").value;
+      const reportType = document.getElementById("reportType").value;
+      const userRole = document.getElementById("userRole").value;
+
+      try {
+        const [users, smmes, funding] = await Promise.all([
+          loadUsers(period, userRole),
+          loadSmmes(period),
+          loadFunding(period),
+        ]);
+
+        reportData = { users, smmes, funding, period, reportType, userRole };
+
+        updateReportCards();
+        updateCharts();
+        updateTables();
+
+        document.getElementById("lastUpdated").textContent = `Last updated: ${new Date().toLocaleString()}`;
+      } catch (error) {
+        console.error("Error generating reports:", error);
+      }
+    }
+
+    async function loadUsers(period, role) {
+      let query = supabaseClient.from("users").select("*");
+      if (period !== "all") {
+        const dateFilter = getDateFilter(period);
+        query = query.gte("created_at", dateFilter);
+      }
+      if (role !== "all") {
+        query = query.eq("role", role);
+      }
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    }
+
+    async function loadSmmes(period) {
+      let query = supabaseClient.from("smmes").select("*");
+      if (period !== "all") {
+        const dateFilter = getDateFilter(period);
+        query = query.gte("created_at", dateFilter);
+      }
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    }
+
+    async function loadFunding(period) {
+      let query = supabaseClient.from("funding").select("*");
+      if (period !== "all") {
+        const dateFilter = getDateFilter(period);
+        query = query.gte("created_at", dateFilter);
+      }
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    }
+
+    function getDateFilter(period) {
+      const now = new Date();
+      switch (period) {
+        case "7days": return new Date(now.setDate(now.getDate() - 7)).toISOString();
+        case "30days": return new Date(now.setDate(now.getDate() - 30)).toISOString();
+        case "90days": return new Date(now.setDate(now.getDate() - 90)).toISOString();
+        case "1year": return new Date(now.setFullYear(now.getFullYear() - 1)).toISOString();
+        default: return "1970-01-01";
+      }
+    }
+
+    function updateReportCards() {
+      const { users, smmes, funding } = reportData;
+
+      const totalUsers = users.length;
+      const activeUsers = users.filter((u) => u.active).length;
+      const newRegistrations = users.filter(
+        (u) => new Date(u.created_at) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+      ).length;
+      const avgMatchRate = smmes.length > 0 ? 65 : 0;
+
+      document.getElementById("reportCards").innerHTML = `
+        <div class="rounded-2xl bg-slate-200/60 backdrop-blur-sm border border-slate-300/60 shadow-sm p-5">
+          <div class="w-9 h-9 rounded-lg bg-brand-600 text-white flex items-center justify-center shadow-sm mb-3">
+            <i class="fas fa-users text-xs"></i>
+          </div>
+          <div class="font-display font-extrabold text-3xl text-slate-900">${totalUsers}</div>
+          <div class="text-xs font-semibold text-slate-700 mt-1">Total Users</div>
+          <div class="text-[11px] text-emerald-700 font-semibold mt-2">+12% from last period</div>
+        </div>
+        <div class="rounded-2xl bg-slate-200/60 backdrop-blur-sm border border-slate-300/60 shadow-sm p-5">
+          <div class="w-9 h-9 rounded-lg bg-emerald-600 text-white flex items-center justify-center shadow-sm mb-3">
+            <i class="fas fa-user-check text-xs"></i>
+          </div>
+          <div class="font-display font-extrabold text-3xl text-slate-900">${activeUsers}</div>
+          <div class="text-xs font-semibold text-slate-700 mt-1">Active Users</div>
+          <div class="text-[11px] text-emerald-700 font-semibold mt-2">+8% from last period</div>
+        </div>
+        <div class="rounded-2xl bg-slate-200/60 backdrop-blur-sm border border-slate-300/60 shadow-sm p-5">
+          <div class="w-9 h-9 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-sm mb-3">
+            <i class="fas fa-user-plus text-xs"></i>
+          </div>
+          <div class="font-display font-extrabold text-3xl text-slate-900">${newRegistrations}</div>
+          <div class="text-xs font-semibold text-slate-700 mt-1">New Registrations</div>
+          <div class="text-[11px] text-emerald-700 font-semibold mt-2">+15% from last period</div>
+        </div>
+        <div class="rounded-2xl bg-slate-200/60 backdrop-blur-sm border border-slate-300/60 shadow-sm p-5">
+          <div class="w-9 h-9 rounded-lg bg-amber-600 text-white flex items-center justify-center shadow-sm mb-3">
+            <i class="fas fa-bullseye text-xs"></i>
+          </div>
+          <div class="font-display font-extrabold text-3xl text-slate-900">${avgMatchRate}%</div>
+          <div class="text-xs font-semibold text-slate-700 mt-1">Average Match Rate</div>
+          <div class="text-[11px] text-emerald-700 font-semibold mt-2">+5% from last period</div>
+        </div>
+        <div class="rounded-2xl bg-slate-200/60 backdrop-blur-sm border border-slate-300/60 shadow-sm p-5">
+          <div class="w-9 h-9 rounded-lg bg-violet-600 text-white flex items-center justify-center shadow-sm mb-3">
+            <i class="fas fa-briefcase text-xs"></i>
+          </div>
+          <div class="font-display font-extrabold text-3xl text-slate-900">${smmes.length}</div>
+          <div class="text-xs font-semibold text-slate-700 mt-1">SMME Profiles</div>
+          <div class="text-[11px] text-emerald-700 font-semibold mt-2">+20% from last period</div>
+        </div>
+        <div class="rounded-2xl bg-slate-200/60 backdrop-blur-sm border border-slate-300/60 shadow-sm p-5">
+          <div class="w-9 h-9 rounded-lg bg-brand-600 text-white flex items-center justify-center shadow-sm mb-3">
+            <i class="fas fa-hand-holding-usd text-xs"></i>
+          </div>
+          <div class="font-display font-extrabold text-3xl text-slate-900">${funding.length}</div>
+          <div class="text-xs font-semibold text-slate-700 mt-1">Funding Opportunities</div>
+          <div class="text-[11px] text-emerald-700 font-semibold mt-2">+10% from last period</div>
+        </div>
+      `;
+    }
+
+    function updateCharts() {
+      const { users } = reportData;
+
+      // Destroy previous instances to prevent canvas reuse errors
+      if (registrationsChartInstance) registrationsChartInstance.destroy();
+      if (successRatesChartInstance) successRatesChartInstance.destroy();
+
+      const regCtx = document.getElementById("registrationsChart").getContext("2d");
+      const last30Days = [...Array(30)]
+        .map((_, i) => {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          return d.toISOString().split("T")[0];
+        })
+        .reverse();
+
+      const regData = last30Days.map((date) => {
+        return users.filter((user) => user.created_at && user.created_at.split("T")[0] === date).length;
       });
 
-      async function checkAdminAuth() {
-        const userData = localStorage.getItem("fundfinder_user");
+      registrationsChartInstance = new Chart(regCtx, {
+        type: "line",
+        data: {
+          labels: last30Days.map((d) => new Date(d).toLocaleDateString()),
+          datasets: [{
+            label: "Daily Registrations",
+            data: regData,
+            borderColor: "#e65100",
+            backgroundColor: "rgba(230, 81, 0, 0.1)",
+            tension: 0.4,
+            fill: true,
+            pointBackgroundColor: "#e65100",
+            pointBorderColor: "#ffffff",
+            pointBorderWidth: 2,
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: "rgba(15, 23, 42, 0.06)" } },
+            x: { grid: { display: false }, ticks: { maxTicksLimit: 10 } }
+          }
+        },
+      });
 
-        if (!userData) {
-          showAccessDenied();
-          return;
-        }
+      const successCtx = document.getElementById("successRatesChart").getContext("2d");
+      successRatesChartInstance = new Chart(successCtx, {
+        type: "bar",
+        data: {
+          labels: ["Tech", "Agriculture", "Manufacturing", "Services", "Tourism"],
+          datasets: [{
+            label: "Match Success Rate (%)",
+            data: [75, 68, 82, 71, 65],
+            backgroundColor: ["#e65100", "#0f6e4a", "#7c3aed", "#d97706", "#0891b2"],
+            borderRadius: 8,
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, max: 100, grid: { color: "rgba(15, 23, 42, 0.06)" } },
+            x: { grid: { display: false } }
+          }
+        },
+      });
+    }
 
-        const user = JSON.parse(userData);
+    function getRoleStyle(role) {
+      const map = {
+        SMME: "bg-brand-100 text-brand-800 border-brand-300",
+        FUNDER: "bg-blue-100 text-blue-800 border-blue-300",
+        ADMIN: "bg-violet-100 text-violet-800 border-violet-300",
+      };
+      return map[role] || "bg-slate-100 text-slate-700 border-slate-300";
+    }
 
-        // Check if user is ADMIN and active
-        const { data: userRecord, error } = await supabaseClient
-          .from("users")
-          .select("*")
-          .eq("id", user.id)
-          .single();
+    function updateTables() {
+      const { users, funding } = reportData;
 
-        if (
-          error ||
-          !userRecord ||
-          userRecord.role !== "ADMIN" ||
-          !userRecord.active
-        ) {
-          showAccessDenied();
-          return;
-        }
+      const recentUsers = users
+        .sort((a, b) => new Date(b.last_login || b.created_at) - new Date(a.last_login || a.created_at))
+        .slice(0, 10);
 
-        // User is valid admin, show admin content
-        document.getElementById("userName").textContent = user.email;
-        document.getElementById("user-avatar").textContent = user.email
-          .charAt(0)
-          .toUpperCase();
-        document.getElementById("adminContent").style.display = "block";
-
-        await generateReports();
-      }
-
-      function showAccessDenied() {
-        document.getElementById("accessDenied").style.display = "block";
-        document.getElementById("adminContent").style.display = "none";
-      }
-
-      async function generateReports() {
-        const period = document.getElementById("reportPeriod").value;
-        const reportType = document.getElementById("reportType").value;
-        const userRole = document.getElementById("userRole").value;
-
-        try {
-          // Load all necessary data
-          const [users, smmes, funding] = await Promise.all([
-            loadUsers(period, userRole),
-            loadSmmes(period),
-            loadFunding(period),
-          ]);
-
-          reportData = { users, smmes, funding, period, reportType, userRole };
-
-          // Update report cards
-          updateReportCards();
-
-          // Update charts
-          updateCharts();
-
-          // Update tables
-          updateTables();
-
-          document.getElementById(
-            "lastUpdated"
-          ).textContent = `Last updated: ${new Date().toLocaleString()}`;
-        } catch (error) {
-          console.error("Error generating reports:", error);
-        }
-      }
-
-      async function loadUsers(period, role) {
-        let query = supabaseClient.from("users").select("*");
-
-        // Apply time filter
-        if (period !== "all") {
-          const dateFilter = getDateFilter(period);
-          query = query.gte("created_at", dateFilter);
-        }
-
-        // Apply role filter
-        if (role !== "all") {
-          query = query.eq("role", role);
-        }
-
-        const { data, error } = await query;
-        if (error) throw error;
-        return data || [];
-      }
-
-      async function loadSmmes(period) {
-        let query = supabaseClient.from("smmes").select("*");
-
-        if (period !== "all") {
-          const dateFilter = getDateFilter(period);
-          query = query.gte("created_at", dateFilter);
-        }
-
-        const { data, error } = await query;
-        if (error) throw error;
-        return data || [];
-      }
-
-      async function loadFunding(period) {
-        let query = supabaseClient.from("funding").select("*");
-
-        if (period !== "all") {
-          const dateFilter = getDateFilter(period);
-          query = query.gte("created_at", dateFilter);
-        }
-
-        const { data, error } = await query;
-        if (error) throw error;
-        return data || [];
-      }
-
-      function getDateFilter(period) {
-        const now = new Date();
-        switch (period) {
-          case "7days":
-            return new Date(now.setDate(now.getDate() - 7)).toISOString();
-          case "30days":
-            return new Date(now.setDate(now.getDate() - 30)).toISOString();
-          case "90days":
-            return new Date(now.setDate(now.getDate() - 90)).toISOString();
-          case "1year":
-            return new Date(
-              now.setFullYear(now.getFullYear() - 1)
-            ).toISOString();
-          default:
-            return "1970-01-01";
-        }
-      }
-
-      function updateReportCards() {
-        const { users, smmes, funding } = reportData;
-
-        const totalUsers = users.length;
-        const activeUsers = users.filter((u) => u.active).length;
-        const newRegistrations = users.filter(
-          (u) =>
-            new Date(u.created_at) >
-            new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-        ).length;
-        const avgMatchRate = smmes.length > 0 ? 65 : 0; // This would come from actual matching data
-
-        document.getElementById("reportCards").innerHTML = `
-          <div class="report-card">
-            <h3>${totalUsers}</h3>
-            <p>Total Users</p>
-            <div class="trend up">+12% from last period</div>
-          </div>
-          <div class="report-card">
-            <h3>${activeUsers}</h3>
-            <p>Active Users</p>
-            <div class="trend up">+8% from last period</div>
-          </div>
-          <div class="report-card">
-            <h3>${newRegistrations}</h3>
-            <p>New Registrations</p>
-            <div class="trend up">+15% from last period</div>
-          </div>
-          <div class="report-card">
-            <h3>${avgMatchRate}%</h3>
-            <p>Average Match Rate</p>
-            <div class="trend up">+5% from last period</div>
-          </div>
-          <div class="report-card">
-            <h3>${smmes.length}</h3>
-            <p>SMME Profiles</p>
-            <div class="trend up">+20% from last period</div>
-          </div>
-          <div class="report-card">
-            <h3>${funding.length}</h3>
-            <p>Funding Opportunities</p>
-            <div class="trend up">+10% from last period</div>
-          </div>
-        `;
-      }
-
-      function updateCharts() {
-        const { users } = reportData;
-
-        // User Registrations Chart
-        const regCtx = document
-          .getElementById("registrationsChart")
-          .getContext("2d");
-        const last30Days = [...Array(30)]
-          .map((_, i) => {
-            const d = new Date();
-            d.setDate(d.getDate() - i);
-            return d.toISOString().split("T")[0];
-          })
-          .reverse();
-
-        const regData = last30Days.map((date) => {
-          return users.filter(
-            (user) => user.created_at && user.created_at.split("T")[0] === date
-          ).length;
-        });
-
-        new Chart(regCtx, {
-          type: "line",
-          data: {
-            labels: last30Days.map((d) => new Date(d).toLocaleDateString()),
-            datasets: [
-              {
-                label: "Daily Registrations",
-                data: regData,
-                borderColor: "#ff8c42",
-                backgroundColor: "rgba(255, 140, 66, 0.1)",
-                tension: 0.4,
-                fill: true,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            plugins: {
-              legend: {
-                display: false,
-              },
-            },
-          },
-        });
-
-        // Success Rates Chart
-        const successCtx = document
-          .getElementById("successRatesChart")
-          .getContext("2d");
-        new Chart(successCtx, {
-          type: "bar",
-          data: {
-            labels: [
-              "Tech",
-              "Agriculture",
-              "Manufacturing",
-              "Services",
-              "Tourism",
-            ],
-            datasets: [
-              {
-                label: "Match Success Rate (%)",
-                data: [75, 68, 82, 71, 65],
-                backgroundColor: [
-                  "#ff8c42",
-                  "#10b981",
-                  "#8b5cf6",
-                  "#f59e0b",
-                  "#06b6d4",
-                ],
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            plugins: {
-              legend: {
-                display: false,
-              },
-            },
-            scales: {
-              y: {
-                beginAtZero: true,
-                max: 100,
-              },
-            },
-          },
-        });
-      }
-
-      function updateTables() {
-        const { users, funding } = reportData;
-
-        // User Activity Table
-        const recentUsers = users
-          .sort(
-            (a, b) =>
-              new Date(b.last_login || b.created_at) -
-              new Date(a.last_login || a.created_at)
-          )
-          .slice(0, 10);
-
-        document.getElementById("userActivityTable").innerHTML = `
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>User</th>
-                <th>Role</th>
-                <th>Last Activity</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${recentUsers
-                .map(
-                  (user) => `
-                <tr>
-                  <td>${user.email}</td>
-                  <td>${user.role}</td>
-                  <td>${
-                    user.last_login
-                      ? new Date(user.last_login).toLocaleString()
-                      : "Never"
-                  }</td>
-                  <td>${user.active ? "Active" : "Pending"}</td>
+      document.getElementById("userActivityTable").innerHTML = `
+        <table class="w-full">
+          <thead>
+            <tr class="bg-white/40 text-left text-[10px] font-bold uppercase tracking-wider text-slate-600">
+              <th class="px-5 py-3 border-b border-slate-300/60">User</th>
+              <th class="px-5 py-3 border-b border-slate-300/60">Role</th>
+              <th class="px-5 py-3 border-b border-slate-300/60">Last Activity</th>
+              <th class="px-5 py-3 border-b border-slate-300/60">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${recentUsers.map((user) => {
+              const roleStyle = getRoleStyle(user.role);
+              const statusStyle = user.active
+                ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+                : "bg-amber-100 text-amber-800 border-amber-300";
+              return `
+                <tr class="border-b border-slate-300/60 last:border-b-0 hover:bg-white/40 transition-colors">
+                  <td class="px-5 py-3 text-xs text-slate-800">${escapeHtml(user.email)}</td>
+                  <td class="px-5 py-3">
+                    <span class="inline-block px-2.5 py-0.5 rounded-md text-[10px] font-bold border ${roleStyle}">${escapeHtml(user.role)}</span>
+                  </td>
+                  <td class="px-5 py-3 text-xs text-slate-700">${user.last_login ? new Date(user.last_login).toLocaleString() : "Never"}</td>
+                  <td class="px-5 py-3">
+                    <span class="inline-block px-2.5 py-0.5 rounded-md text-[10px] font-bold border ${statusStyle}">${user.active ? "Active" : "Pending"}</span>
+                  </td>
                 </tr>
-              `
-                )
-                .join("")}
-            </tbody>
-          </table>
-        `;
+              `;
+            }).join("")}
+          </tbody>
+        </table>
+      `;
 
-        // Funding Performance Table
-        document.getElementById("fundingPerformanceTable").innerHTML = `
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Funding Opportunity</th>
-                <th>Category</th>
-                <th>Matches</th>
-                <th>Success Rate</th>
-                <th>Status</th>
+      document.getElementById("fundingPerformanceTable").innerHTML = `
+        <table class="w-full">
+          <thead>
+            <tr class="bg-white/40 text-left text-[10px] font-bold uppercase tracking-wider text-slate-600">
+              <th class="px-5 py-3 border-b border-slate-300/60">Funding Opportunity</th>
+              <th class="px-5 py-3 border-b border-slate-300/60">Category</th>
+              <th class="px-5 py-3 border-b border-slate-300/60">Matches</th>
+              <th class="px-5 py-3 border-b border-slate-300/60">Success Rate</th>
+              <th class="px-5 py-3 border-b border-slate-300/60">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${funding.map((opp) => `
+              <tr class="border-b border-slate-300/60 last:border-b-0 hover:bg-white/40 transition-colors">
+                <td class="px-5 py-3 text-xs font-semibold text-slate-900">${escapeHtml(opp.name)}</td>
+                <td class="px-5 py-3 text-xs text-slate-700">${escapeHtml(opp.criteria?.sector || "General")}</td>
+                <td class="px-5 py-3 text-xs text-slate-700">${Math.floor(Math.random() * 50) + 10}</td>
+                <td class="px-5 py-3 text-xs text-slate-700">${Math.floor(Math.random() * 30) + 60}%</td>
+                <td class="px-5 py-3"><span class="inline-block px-2.5 py-0.5 rounded-md text-[10px] font-bold border bg-emerald-100 text-emerald-800 border-emerald-300">Active</span></td>
               </tr>
-            </thead>
-            <tbody>
-              ${funding
-                .map(
-                  (opp) => `
-                <tr>
-                  <td>${opp.name}</td>
-                  <td>${opp.criteria?.sector || "General"}</td>
-                  <td>${Math.floor(Math.random() * 50) + 10}</td>
-                  <td>${Math.floor(Math.random() * 30) + 60}%</td>
-                  <td>Active</td>
-                </tr>
-              `
-                )
-                .join("")}
-            </tbody>
-          </table>
-        `;
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    // PDF Export — preserved exactly (same logic, same jsPDF calls)
+    async function exportFullReportPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      const originalText = document.querySelector(".btn-primary")?.innerHTML || "";
+      const pdfButton = document.querySelector('button[onclick="exportFullReportPDF()"]');
+      if (pdfButton) {
+        pdfButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PDF...';
+        pdfButton.disabled = true;
       }
 
-      // Function to export full report as PDF
-      async function exportFullReportPDF() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
+      try {
+        doc.setFillColor(255, 140, 66);
+        doc.rect(0, 0, 210, 30, "F");
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(20);
+        doc.text("FundFinder Analytics Report", 105, 15, { align: "center" });
 
-        // Show loading state
-        const originalText = document.querySelector(".btn-primary").innerHTML;
-        document.querySelector(".btn-primary").innerHTML =
-          '<i class="fas fa-spinner fa-spin"></i> Generating PDF...';
-        document.querySelector(".btn-primary").disabled = true;
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(10);
+        doc.text(`Generated: ${new Date().toLocaleString()}`, 15, 40);
+        doc.text(`Period: ${document.getElementById("reportPeriod").options[document.getElementById("reportPeriod").selectedIndex].text}`, 15, 47);
+        doc.text(`Report Type: ${document.getElementById("reportType").options[document.getElementById("reportType").selectedIndex].text}`, 15, 54);
 
-        try {
-          // Add header
-          doc.setFillColor(255, 140, 66);
-          doc.rect(0, 0, 210, 30, "F");
-          doc.setTextColor(255, 255, 255);
-          doc.setFontSize(20);
-          doc.text("FundFinder Analytics Report", 105, 15, { align: "center" });
+        let yPosition = 70;
 
-          // Add report details
-          doc.setTextColor(0, 0, 0);
-          doc.setFontSize(10);
-          doc.text(`Generated: ${new Date().toLocaleString()}`, 15, 40);
-          doc.text(
-            `Period: ${
-              document.getElementById("reportPeriod").options[
-                document.getElementById("reportPeriod").selectedIndex
-              ].text
-            }`,
-            15,
-            47
-          );
-          doc.text(
-            `Report Type: ${
-              document.getElementById("reportType").options[
-                document.getElementById("reportType").selectedIndex
-              ].text
-            }`,
-            15,
-            54
-          );
+        doc.setFontSize(16);
+        doc.setTextColor(255, 140, 66);
+        doc.text("Executive Summary", 15, yPosition);
+        yPosition += 10;
 
-          let yPosition = 70;
-
-          // Add summary section
-          doc.setFontSize(16);
-          doc.setTextColor(255, 140, 66);
-          doc.text("Executive Summary", 15, yPosition);
-          yPosition += 10;
-
-          doc.setFontSize(10);
-          doc.setTextColor(0, 0, 0);
-          const summary = `This report provides a comprehensive overview of FundFinder platform performance for the selected period.
+        doc.setFontSize(10);
+        doc.setTextColor(0, 0, 0);
+        const summary = `This report provides a comprehensive overview of FundFinder platform performance for the selected period.
 
 Key Highlights:
 • Total Users: ${reportData.users.length.toString()}
 • Active SMMEs: ${reportData.smmes.length.toString()}
 • Funding Opportunities: ${reportData.funding.length.toString()}
 • Average Match Rate: 65%
-• Period: ${
-            document.getElementById("reportPeriod").options[
-              document.getElementById("reportPeriod").selectedIndex
-            ].text
-          }`;
+• Period: ${document.getElementById("reportPeriod").options[document.getElementById("reportPeriod").selectedIndex].text}`;
 
-          const splitSummary = doc.splitTextToSize(summary, 180);
-          doc.text(splitSummary, 15, yPosition);
-          yPosition += splitSummary.length * 5 + 15;
+        const splitSummary = doc.splitTextToSize(summary, 180);
+        doc.text(splitSummary, 15, yPosition);
+        yPosition += splitSummary.length * 5 + 15;
 
-          // Add key metrics table
-          doc.setFontSize(14);
-          doc.setTextColor(255, 140, 66);
-          doc.text("Key Performance Indicators", 15, yPosition);
-          yPosition += 10;
+        doc.setFontSize(14);
+        doc.setTextColor(255, 140, 66);
+        doc.text("Key Performance Indicators", 15, yPosition);
+        yPosition += 10;
 
-          // Convert all values to strings for the metrics table
-          const metrics = [
-            ["Metric", "Value", "Trend"],
-            ["Total Users", reportData.users.length.toString(), "+12%"],
-            [
-              "Active Users",
-              reportData.users.filter((u) => u.active).length.toString(),
-              "+8%",
-            ],
-            ["SMME Profiles", reportData.smmes.length.toString(), "+20%"],
-            [
-              "Funding Opportunities",
-              reportData.funding.length.toString(),
-              "+10%",
-            ],
-            [
-              "New Registrations",
-              reportData.users
-                .filter(
-                  (u) =>
-                    new Date(u.created_at) >
-                    new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-                )
-                .length.toString(),
-              "+15%",
-            ],
-            ["Average Match Rate", "65%", "+5%"],
-          ];
+        const metrics = [
+          ["Metric", "Value", "Trend"],
+          ["Total Users", reportData.users.length.toString(), "+12%"],
+          ["Active Users", reportData.users.filter((u) => u.active).length.toString(), "+8%"],
+          ["SMME Profiles", reportData.smmes.length.toString(), "+20%"],
+          ["Funding Opportunities", reportData.funding.length.toString(), "+10%"],
+          ["New Registrations", reportData.users.filter((u) => new Date(u.created_at) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)).length.toString(), "+15%"],
+          ["Average Match Rate", "65%", "+5%"],
+        ];
 
-          doc.setFontSize(8);
-          doc.setTextColor(0, 0, 0);
+        doc.setFontSize(8);
+        doc.setTextColor(0, 0, 0);
 
-          // Draw table
-          metrics.forEach((row, rowIndex) => {
-            const isHeader = rowIndex === 0;
-            if (isHeader) {
-              doc.setFillColor(255, 232, 219);
-              doc.rect(15, yPosition, 180, 8, "F");
-              doc.setTextColor(255, 140, 66);
-              doc.setFont(undefined, "bold");
-            } else {
-              doc.setTextColor(0, 0, 0);
-              doc.setFont(undefined, "normal");
-            }
-
-            // Ensure all values are strings
-            const text1 = String(row[0]);
-            const text2 = String(row[1]);
-            const text3 = String(row[2]);
-
-            doc.text(text1, 17, yPosition + 6);
-            doc.text(text2, 90, yPosition + 6);
-            doc.text(text3, 160, yPosition + 6);
-
-            yPosition += 8;
-          });
-
-          yPosition += 10;
-
-          // Add user activity table
-          if (yPosition > 250) {
-            doc.addPage();
-            yPosition = 20;
+        metrics.forEach((row, rowIndex) => {
+          const isHeader = rowIndex === 0;
+          if (isHeader) {
+            doc.setFillColor(255, 232, 219);
+            doc.rect(15, yPosition, 180, 8, "F");
+            doc.setTextColor(255, 140, 66);
+            doc.setFont(undefined, "bold");
+          } else {
+            doc.setTextColor(0, 0, 0);
+            doc.setFont(undefined, "normal");
           }
+          doc.text(String(row[0]), 17, yPosition + 6);
+          doc.text(String(row[1]), 90, yPosition + 6);
+          doc.text(String(row[2]), 160, yPosition + 6);
+          yPosition += 8;
+        });
 
-          doc.setFontSize(14);
-          doc.setTextColor(255, 140, 66);
-          doc.text("Recent User Activity", 15, yPosition);
-          yPosition += 10;
+        yPosition += 10;
+        if (yPosition > 250) { doc.addPage(); yPosition = 20; }
 
-          const userHeaders = ["Email", "Role", "Last Activity", "Status"];
-          const userData = reportData.users
-            .sort(
-              (a, b) =>
-                new Date(b.last_login || b.created_at) -
-                new Date(a.last_login || a.created_at)
-            )
-            .slice(0, 8)
-            .map((user) => [
-              String(user.email || ""),
-              String(user.role || ""),
-              String(
-                user.last_login
-                  ? new Date(user.last_login).toLocaleDateString()
-                  : "Never"
-              ),
-              String(user.active ? "Active" : "Pending"),
-            ]);
+        doc.setFontSize(14);
+        doc.setTextColor(255, 140, 66);
+        doc.text("Recent User Activity", 15, yPosition);
+        yPosition += 10;
 
-          // Draw user table header
-          doc.setFillColor(255, 232, 219);
-          doc.rect(15, yPosition, 180, 8, "F");
-          doc.setTextColor(255, 140, 66);
-          doc.setFontSize(8);
-          doc.setFont(undefined, "bold");
-          userHeaders.forEach((header, index) => {
-            const xPositions = [17, 70, 120, 170];
-            doc.text(String(header), xPositions[index], yPosition + 6);
+        const userHeaders = ["Email", "Role", "Last Activity", "Status"];
+        const userData = reportData.users
+          .sort((a, b) => new Date(b.last_login || b.created_at) - new Date(a.last_login || a.created_at))
+          .slice(0, 8)
+          .map((user) => [
+            String(user.email || ""),
+            String(user.role || ""),
+            String(user.last_login ? new Date(user.last_login).toLocaleDateString() : "Never"),
+            String(user.active ? "Active" : "Pending"),
+          ]);
+
+        doc.setFillColor(255, 232, 219);
+        doc.rect(15, yPosition, 180, 8, "F");
+        doc.setTextColor(255, 140, 66);
+        doc.setFontSize(8);
+        doc.setFont(undefined, "bold");
+        userHeaders.forEach((header, index) => {
+          const xPositions = [17, 70, 120, 170];
+          doc.text(String(header), xPositions[index], yPosition + 6);
+        });
+        yPosition += 8;
+
+        doc.setTextColor(0, 0, 0);
+        doc.setFont(undefined, "normal");
+        userData.forEach((row) => {
+          if (yPosition > 270) { doc.addPage(); yPosition = 20; }
+          const xPositions = [17, 70, 120, 170];
+          row.forEach((cell, cellIndex) => {
+            const text = doc.splitTextToSize(String(cell), cellIndex === 0 ? 50 : 40);
+            doc.text(text, xPositions[cellIndex], yPosition + 6);
           });
           yPosition += 8;
+        });
 
-          // Draw user table data
-          doc.setTextColor(0, 0, 0);
-          doc.setFont(undefined, "normal");
-          userData.forEach((row) => {
-            if (yPosition > 270) {
-              doc.addPage();
-              yPosition = 20;
-            }
+        yPosition += 10;
+        if (yPosition > 250) { doc.addPage(); yPosition = 20; }
 
-            const xPositions = [17, 70, 120, 170];
-            row.forEach((cell, cellIndex) => {
-              // Ensure cell is a string and handle long text
-              const cellText = String(cell);
-              const text = doc.splitTextToSize(
-                cellText,
-                cellIndex === 0 ? 50 : 40
-              );
-              doc.text(text, xPositions[cellIndex], yPosition + 6);
-            });
-            yPosition += 8;
-          });
+        doc.setFontSize(14);
+        doc.setTextColor(255, 140, 66);
+        doc.text("Funding Opportunity Performance", 15, yPosition);
+        yPosition += 10;
 
-          yPosition += 10;
+        const fundingHeaders = ["Opportunity", "Sector", "Matches", "Success Rate"];
+        const fundingData = reportData.funding
+          .slice(0, 8)
+          .map((opp) => [
+            String(opp.name || ""),
+            String(opp.criteria?.sector || "General"),
+            String(Math.floor(Math.random() * 50) + 10),
+            String(Math.floor(Math.random() * 30) + 60 + "%"),
+          ]);
 
-          // Add funding performance table
-          if (yPosition > 250) {
-            doc.addPage();
-            yPosition = 20;
-          }
+        doc.setFillColor(255, 232, 219);
+        doc.rect(15, yPosition, 180, 8, "F");
+        doc.setTextColor(255, 140, 66);
+        doc.setFontSize(8);
+        doc.setFont(undefined, "bold");
+        fundingHeaders.forEach((header, index) => {
+          const xPositions = [17, 70, 120, 160];
+          doc.text(String(header), xPositions[index], yPosition + 6);
+        });
+        yPosition += 8;
 
-          doc.setFontSize(14);
-          doc.setTextColor(255, 140, 66);
-          doc.text("Funding Opportunity Performance", 15, yPosition);
-          yPosition += 10;
-
-          const fundingHeaders = [
-            "Opportunity",
-            "Sector",
-            "Matches",
-            "Success Rate",
-          ];
-          const fundingData = reportData.funding
-            .slice(0, 8)
-            .map((opp) => [
-              String(opp.name || ""),
-              String(opp.criteria?.sector || "General"),
-              String(Math.floor(Math.random() * 50) + 10),
-              String(Math.floor(Math.random() * 30) + 60 + "%"),
-            ]);
-
-          // Draw funding table header
-          doc.setFillColor(255, 232, 219);
-          doc.rect(15, yPosition, 180, 8, "F");
-          doc.setTextColor(255, 140, 66);
-          doc.setFontSize(8);
-          doc.setFont(undefined, "bold");
-          fundingHeaders.forEach((header, index) => {
-            const xPositions = [17, 70, 120, 160];
-            doc.text(String(header), xPositions[index], yPosition + 6);
+        doc.setTextColor(0, 0, 0);
+        doc.setFont(undefined, "normal");
+        fundingData.forEach((row) => {
+          if (yPosition > 270) { doc.addPage(); yPosition = 20; }
+          const xPositions = [17, 70, 120, 160];
+          row.forEach((cell, cellIndex) => {
+            const text = doc.splitTextToSize(String(cell), cellIndex === 0 ? 50 : 40);
+            doc.text(text, xPositions[cellIndex], yPosition + 6);
           });
           yPosition += 8;
+        });
 
-          // Draw funding table data
-          doc.setTextColor(0, 0, 0);
-          doc.setFont(undefined, "normal");
-          fundingData.forEach((row) => {
-            if (yPosition > 270) {
-              doc.addPage();
-              yPosition = 20;
-            }
+        const pageCount = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+          doc.setPage(i);
+          doc.setFontSize(8);
+          doc.setTextColor(128, 128, 128);
+          doc.text(`Page ${i} of ${pageCount}`, 105, 290, { align: "center" });
+          doc.text("FundFinder - Confidential", 195, 290, { align: "right" });
+        }
 
-            const xPositions = [17, 70, 120, 160];
-            row.forEach((cell, cellIndex) => {
-              // Ensure cell is a string and handle long text
-              const cellText = String(cell);
-              const text = doc.splitTextToSize(
-                cellText,
-                cellIndex === 0 ? 50 : 40
-              );
-              doc.text(text, xPositions[cellIndex], yPosition + 6);
-            });
-            yPosition += 8;
-          });
-
-          // Add footer
-          const pageCount = doc.internal.getNumberOfPages();
-          for (let i = 1; i <= pageCount; i++) {
-            doc.setPage(i);
-            doc.setFontSize(8);
-            doc.setTextColor(128, 128, 128);
-            doc.text(`Page ${i} of ${pageCount}`, 105, 290, {
-              align: "center",
-            });
-            doc.text("FundFinder - Confidential", 195, 290, { align: "right" });
-          }
-
-          // Save the PDF
-          doc.save(
-            `FundFinder-Report-${new Date().toISOString().split("T")[0]}.pdf`
-          );
-        } catch (error) {
-          console.error("Error generating PDF:", error);
-          alert("Error generating PDF report. Please try again.");
-        } finally {
-          // Restore button state
-          document.querySelector(".btn-primary").innerHTML = originalText;
-          document.querySelector(".btn-primary").disabled = false;
+        doc.save(`FundFinder-Report-${new Date().toISOString().split("T")[0]}.pdf`);
+      } catch (error) {
+        console.error("Error generating PDF:", error);
+        alert("Error generating PDF report. Please try again.");
+      } finally {
+        if (pdfButton) {
+          pdfButton.innerHTML = '<i class="fas fa-file-pdf text-xs"></i> Export Full Report (PDF)';
+          pdfButton.disabled = false;
         }
       }
+    }
 
-      function exportReport() {
-        alert(
-          "Report export functionality would generate a professional PDF report here."
-        );
-      }
+    function exportReport() {
+      alert("Report export functionality would generate a professional PDF report here.");
+    }
 
-      function exportFullReport() {
-        const { users, smmes, funding } = reportData;
+    function exportFullReport() {
+      const { users, smmes, funding } = reportData;
+      const report = {
+        summary: {
+          totalUsers: users.length,
+          activeUsers: users.filter((u) => u.active).length,
+          totalSmmes: smmes.length,
+          totalFunding: funding.length,
+          period: document.getElementById("reportPeriod").value,
+        },
+        users, smmes, funding,
+      };
+      const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `fundfinder-report-${new Date().toISOString().split("T")[0]}.json`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    }
 
-        const report = {
-          summary: {
-            totalUsers: users.length,
-            activeUsers: users.filter((u) => u.active).length,
-            totalSmmes: smmes.length,
-            totalFunding: funding.length,
-            period: document.getElementById("reportPeriod").value,
-          },
-          users: users,
-          smmes: smmes,
-          funding: funding,
-        };
+    function exportData() {
+      const { users } = reportData;
 
-        const blob = new Blob([JSON.stringify(report, null, 2)], {
-          type: "application/json",
+      const userHeaders = ["Email", "Role", "Status", "Last Login", "Registered"];
+      const userData = users.map((user) => [
+        user.email,
+        user.role,
+        user.active ? "Active" : "Pending",
+        user.last_login ? new Date(user.last_login).toLocaleDateString() : "Never",
+        new Date(user.created_at).toLocaleDateString(),
+      ]);
+
+      const csvContent = [userHeaders, ...userData].map((row) => row.map((field) => `"${field}"`).join(",")).join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `fundfinder-users-${new Date().toISOString().split("T")[0]}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    }
+
+    function escapeHtml(s) {
+      if (s === null || s === undefined) return "";
+      return String(s)
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    function logout() {
+      localStorage.removeItem("fundfinder_user");
+      window.location.href = "index.html";
+    }
+
+    function initMobileMenu() {
+      const btn = document.getElementById("mobile-menu-btn");
+      const menu = document.getElementById("mobile-menu");
+      const icon = document.getElementById("mobile-menu-icon");
+      if (btn) {
+        btn.addEventListener("click", () => {
+          const hidden = menu.classList.contains("hidden");
+          if (hidden) {
+            menu.classList.remove("hidden");
+            icon.classList.remove("fa-bars");
+            icon.classList.add("fa-times");
+          } else {
+            menu.classList.add("hidden");
+            icon.classList.remove("fa-times");
+            icon.classList.add("fa-bars");
+          }
         });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `fundfinder-report-${
-          new Date().toISOString().split("T")[0]
-        }.json`;
-        a.click();
-        window.URL.revokeObjectURL(url);
       }
-
-      function exportData() {
-        const { users, smmes, funding } = reportData;
-
-        // Export users as CSV
-        const userHeaders = [
-          "Email",
-          "Role",
-          "Status",
-          "Last Login",
-          "Registered",
-        ];
-        const userData = users.map((user) => [
-          user.email,
-          user.role,
-          user.active ? "Active" : "Pending",
-          user.last_login
-            ? new Date(user.last_login).toLocaleDateString()
-            : "Never",
-          new Date(user.created_at).toLocaleDateString(),
-        ]);
-
-        const csvContent = [userHeaders, ...userData]
-          .map((row) => row.map((field) => `"${field}"`).join(","))
-          .join("\n");
-
-        const blob = new Blob([csvContent], { type: "text/csv" });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `fundfinder-users-${
-          new Date().toISOString().split("T")[0]
-        }.csv`;
-        a.click();
-        window.URL.revokeObjectURL(url);
-      }
-
-      function logout() {
-        localStorage.removeItem("fundfinder_user");
-        window.location.href = "index.html";
-      }
-    </script>
-  </body>
+    }
+  </script>
+</body>
 </html>
