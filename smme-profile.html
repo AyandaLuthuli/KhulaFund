@@ -1,524 +1,221 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FundFinder - Complete Your Business Profile</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <style>
-      /* CSS Variables for Orange Design System */
-      :root {
-        --color-white: #ffffff;
-        --color-orange: #ff8c42; /* Softer orange */
-        --color-orange-medium: #ffa366;
-        --color-orange-light: #ffc8a8;
-        --color-orange-very-light: #ffe8db;
-        --color-dark: #333333;
-        --color-gray: #666666;
-        --color-gray-light: #f5f5f5;
-        --color-gray-border: #e0e0e0;
-        --font-heading: "Archivo Black", sans-serif;
-        --font-body: "Archivo", sans-serif;
-        --border-radius-sm: 4px;
-        --border-radius-md: 8px;
-        --border-radius-lg: 12px;
-        --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
-        --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
-        --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
-        --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-      }
-
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      body {
-        font-family: var(--font-body);
-        line-height: 1.6;
-        color: var(--color-dark);
-        background: var(--color-gray-light);
-        min-height: 100vh;
-      }
-
-      /* Header */
-      .header {
-        background: var(--color-white);
-        padding: 1rem 2rem;
-        border-bottom: 2px solid var(--color-orange);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: var(--shadow-sm);
-      }
-
-      .logo {
-        font-weight: 700;
-        font-size: 1.8rem;
-        color: var(--color-orange);
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-family: var(--font-heading);
-      }
-
-      .nav-links {
-        display: flex;
-        gap: 2rem;
-        align-items: center;
-      }
-
-      .nav-links a {
-        color: var(--color-dark);
-        text-decoration: none;
-        font-weight: 600;
-        padding: 0.5rem 1rem;
-        border-radius: var(--border-radius-md);
-        transition: var(--transition);
-        position: relative;
-      }
-
-      .nav-links a:hover,
-      .nav-links a.active {
-        color: var(--color-orange);
-      }
-
-      .nav-links a.active::after {
-        content: "";
-        position: absolute;
-        bottom: -2px;
-        left: 1rem;
-        right: 1rem;
-        height: 3px;
-        background: var(--color-orange);
-        border-radius: var(--border-radius-sm);
-      }
-
-      .user-menu {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-      }
-
-      .logout-btn {
-        background: #ff4757;
-        color: white;
-        border: none;
-        padding: 0.6rem 1.2rem;
-        border-radius: var(--border-radius-md);
-        cursor: pointer;
-        font-weight: 600;
-        transition: var(--transition);
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-
-      .logout-btn:hover {
-        background: #ff3742;
-        transform: translateY(-2px);
-      }
-
-      /* Main Content */
-      .main-content {
-        max-width: 1000px;
-        margin: 0 auto;
-        padding: 2rem;
-      }
-
-      .profile-container {
-        background: var(--color-white);
-        padding: 3rem;
-        border-radius: var(--border-radius-lg);
-        box-shadow: var(--shadow-md);
-      }
-
-      .profile-header {
-        text-align: center;
-        margin-bottom: 2.5rem;
-      }
-
-      .profile-header h1 {
-        color: var(--color-orange);
-        margin-bottom: 0.5rem;
-        font-size: 2.5rem;
-        font-family: var(--font-heading);
-      }
-
-      .profile-header p {
-        color: var(--color-gray);
-        font-size: 1.2rem;
-      }
-
-      .progress-section {
-        background: var(--color-gray-light);
-        padding: 2rem;
-        border-radius: var(--border-radius-lg);
-        margin-bottom: 2.5rem;
-        border-left: 4px solid var(--color-orange);
-      }
-
-      .progress-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1rem;
-      }
-
-      .progress-header h3 {
-        color: var(--color-dark);
-        font-size: 1.3rem;
-        font-family: var(--font-heading);
-      }
-
-      .progress-percentage {
-        font-weight: 700;
-        color: var(--color-orange);
-        font-size: 1.2rem;
-      }
-
-      .progress-bar {
-        background: var(--color-gray-border);
-        height: 10px;
-        border-radius: var(--border-radius-sm);
-        overflow: hidden;
-      }
-
-      .progress {
-        background: linear-gradient(
-          135deg,
-          var(--color-orange),
-          var(--color-orange-medium)
-        );
-        height: 100%;
-        width: 0%;
-        transition: width 0.5s ease;
-      }
-
-      .form-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1.5rem;
-        margin-bottom: 2rem;
-      }
-
-      .form-group {
-        margin-bottom: 1.5rem;
-      }
-
-      .form-group.full-width {
-        grid-column: 1 / -1;
-      }
-
-      label {
-        display: block;
-        margin-bottom: 0.5rem;
-        font-weight: 600;
-        color: var(--color-dark);
-      }
-
-      .required::after {
-        content: " *";
-        color: #e53e3e;
-      }
-
-      input,
-      select,
-      textarea {
-        width: 100%;
-        padding: 1rem 1.2rem;
-        border: 2px solid var(--color-gray-border);
-        border-radius: var(--border-radius-md);
-        font-size: 1rem;
-        transition: var(--transition);
-        background: var(--color-gray-light);
-        font-family: var(--font-body);
-      }
-
-      input:focus,
-      select:focus,
-      textarea:focus {
-        border-color: var(--color-orange);
-        background: var(--color-white);
-        outline: none;
-        box-shadow: 0 0 0 3px rgba(255, 140, 66, 0.1);
-      }
-
-      textarea {
-        resize: vertical;
-        min-height: 120px;
-      }
-
-      .form-actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 1rem;
-        margin-top: 2rem;
-        padding-top: 2rem;
-        border-top: 1px solid var(--color-gray-border);
-      }
-
-      .btn {
-        padding: 1rem 2.5rem;
-        border: none;
-        border-radius: var(--border-radius-md);
-        font-size: 1.1rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: var(--transition);
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-family: var(--font-body);
-      }
-
-      .btn-primary {
-        background: var(--color-orange);
-        color: white;
-      }
-
-      .btn-primary:hover {
-        background: var(--color-orange-medium);
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
-      }
-
-      .btn-secondary {
-        background: var(--color-gray-light);
-        color: var(--color-dark);
-        border: 2px solid var(--color-gray-border);
-      }
-
-      .btn-secondary:hover {
-        background: var(--color-orange-very-light);
-        border-color: var(--color-orange);
-        transform: translateY(-2px);
-      }
-
-      .message {
-        padding: 1.5rem;
-        border-radius: var(--border-radius-md);
-        margin-bottom: 1.5rem;
-        display: none;
-        font-weight: 500;
-      }
-
-      .message.success {
-        background: #e6f7ee;
-        color: #0a7b3e;
-        border: 1px solid #a3e9c0;
-        display: block;
-      }
-
-      .message.error {
-        background: #fde8e8;
-        color: #c53030;
-        border: 1px solid #feb2b2;
-        display: block;
-      }
-
-      .loading {
-        display: none;
-        text-align: center;
-        padding: 2rem;
-      }
-
-      .loading.active {
-        display: block;
-      }
-
-      .spinner {
-        border: 4px solid rgba(0, 0, 0, 0.1);
-        border-left-color: var(--color-orange);
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        animation: spin 1s linear infinite;
-        margin: 0 auto 1rem;
-      }
-
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Business Profile — FundFinder</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#fff3e0', 100: '#ffe0b2', 200: '#ffcc80', 300: '#ffb74d',
+              400: '#ffa726', 500: '#ff6d00', 600: '#e65100', 700: '#bf360c',
+              800: '#9a3412', 900: '#7c2d12',
+            },
+            slate: { 850: '#151e32', 900: '#0f172a', 950: '#090d16' }
+          },
+          boxShadow: {
+            'glass': '0 4px 30px rgba(15, 23, 42, 0.05)',
+            'elevated': '0 20px 40px -15px rgba(15, 23, 42, 0.09)',
+          }
         }
       }
+    };
+  </script>
+  <style>
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #f8fafc; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-      @media (max-width: 768px) {
-        .header {
-          flex-direction: column;
-          gap: 1rem;
-          padding: 1rem;
-        }
+    .spinner {
+      border: 3px solid rgba(230, 81, 0, 0.15);
+      border-left-color: #e65100;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-        .nav-links {
-          gap: 0.5rem;
-        }
+    .message { display: none; }
+    .message.success { display: block; }
+    .message.error { display: block; }
 
-        .nav-links a {
-          padding: 0.5rem;
-          font-size: 0.9rem;
-        }
+    .loading { display: none; }
+    .loading.active { display: flex; }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-900 font-sans antialiased selection:bg-brand-600 selection:text-white min-h-screen flex flex-col">
 
-        .main-content {
-          padding: 1rem;
-        }
+  <!-- Sticky Header -->
+  <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-glass">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-20">
 
-        .profile-container {
-          padding: 2rem;
-        }
+        <!-- Logo -->
+        <a href="smme-dashboard.html" class="flex items-center gap-2.5 group">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-600 to-brand-500 flex items-center justify-center text-white shadow-md shadow-brand-600/25 group-hover:scale-105 transition-transform">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+            </svg>
+          </div>
+          <div class="flex flex-col">
+            <div class="flex items-center gap-1.5">
+              <span class="font-display font-extrabold text-xl tracking-tight text-slate-900">FundFinder</span>
+              <span class="w-2 h-2 rounded-full bg-brand-600"></span>
+            </div>
+            <span class="text-[10px] uppercase tracking-widest font-bold text-brand-600 -mt-1">SMME Portal</span>
+          </div>
+        </a>
 
-        .form-grid {
-          grid-template-columns: 1fr;
-        }
+        <!-- Desktop Nav -->
+        <nav class="hidden lg:flex items-center gap-7">
+          <a href="smme-dashboard.html" class="text-sm font-medium text-slate-600 hover:text-brand-600 transition-colors">Dashboard</a>
+          <a href="smme-profile.html" class="text-sm font-semibold text-brand-600 relative pb-1">
+            My Profile
+            <span class="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-600 rounded-full"></span>
+          </a>
+          <a href="smme-funding-opportunities.html" class="text-sm font-medium text-slate-600 hover:text-brand-600 transition-colors">Find Opportunities</a>
+          <a href="smme-applications.html" class="text-sm font-medium text-slate-600 hover:text-brand-600 transition-colors">My Applications</a>
+        </nav>
 
-        .form-actions {
-          flex-direction: column;
-        }
+        <!-- User Menu -->
+        <div class="hidden lg:flex items-center gap-3">
+          <button onclick="logout()" class="px-4 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-sm font-semibold transition-colors flex items-center gap-2">
+            <i class="fas fa-sign-out-alt text-xs"></i>
+            <span>Logout</span>
+          </button>
+        </div>
 
-        .btn {
-          width: 100%;
-          justify-content: center;
-        }
-
-        .profile-header h1 {
-          font-size: 2rem;
-        }
-
-        .progress-section {
-          padding: 1.5rem;
-        }
-      }
-
-      @media (max-width: 480px) {
-        .profile-container {
-          padding: 1.5rem;
-        }
-
-        .profile-header h1 {
-          font-size: 1.8rem;
-        }
-
-        .btn {
-          padding: 0.875rem 1.5rem;
-          font-size: 1rem;
-        }
-
-        .form-group {
-          margin-bottom: 1rem;
-        }
-
-        input,
-        select,
-        textarea {
-          padding: 0.875rem 1rem;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <!-- Header -->
-    <div class="header">
-      <div class="logo">
-        <i class="fas fa-hand-holding-usd"></i>
-        FundFinder
-      </div>
-      <div class="nav-links">
-        <a href="smme-dashboard.html">Dashboard</a>
-        <a href="smme-profile.html" class="active">My Profile</a>
-        <a href="smme-funding-opportunities.html">Find Opportunities</a>
-        <a href="smme-applications.html">My Applications</a>
-      </div>
-      <div class="user-menu">
-        <button class="logout-btn" onclick="logout()">
-          <i class="fas fa-sign-out-alt"></i> Logout
-        </button>
+        <!-- Mobile Hamburger -->
+        <div class="lg:hidden flex items-center">
+          <button id="mobile-menu-btn" aria-label="Toggle Menu" class="p-2.5 rounded-xl text-slate-700 hover:bg-slate-100 transition-colors">
+            <i class="fas fa-bars text-xl" id="mobile-menu-icon"></i>
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="main-content">
-      <div class="profile-container">
-        <div class="profile-header">
-          <h1>Complete Your Business Profile</h1>
-          <p>
-            Tell us about your business to unlock personalized funding matches
-          </p>
-        </div>
+    <!-- Mobile Drawer -->
+    <div id="mobile-menu" class="hidden lg:hidden bg-white border-b border-slate-200 px-4 pt-2 pb-6 space-y-2 shadow-xl">
+      <a href="smme-dashboard.html" class="block px-3 py-2.5 rounded-xl text-base font-medium text-slate-700 hover:bg-brand-50 hover:text-brand-600">Dashboard</a>
+      <a href="smme-profile.html" class="block px-3 py-2.5 rounded-xl text-base font-semibold text-brand-600 bg-brand-50">My Profile</a>
+      <a href="smme-funding-opportunities.html" class="block px-3 py-2.5 rounded-xl text-base font-medium text-slate-700 hover:bg-brand-50 hover:text-brand-600">Find Opportunities</a>
+      <a href="smme-applications.html" class="block px-3 py-2.5 rounded-xl text-base font-medium text-slate-700 hover:bg-brand-50 hover:text-brand-600">My Applications</a>
+      <div class="pt-3 border-t border-slate-100">
+        <button onclick="logout()" class="w-full py-2.5 text-center text-sm font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-xl">Logout</button>
+      </div>
+    </div>
+  </header>
 
-        <!-- Progress Section -->
-        <div class="progress-section">
-          <div class="progress-header">
-            <h3>Profile Completion</h3>
-            <div class="progress-percentage" id="progressPercentage">0%</div>
+  <main class="flex-1">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+
+      <!-- Page Header -->
+      <div class="text-center">
+        <span class="text-xs font-bold uppercase tracking-widest text-brand-700">Business Profile</span>
+        <h1 class="font-display font-extrabold text-3xl sm:text-4xl text-slate-900 mt-2 mb-3">
+          Complete your business profile
+        </h1>
+        <p class="text-sm sm:text-base text-slate-700 max-w-xl mx-auto">
+          Tell us about your business to unlock personalized funding matches and increase your approval chances.
+        </p>
+      </div>
+
+      <!-- Progress Card -->
+      <div class="rounded-2xl border border-slate-300/60 shadow-sm p-6 sm:p-8 bg-slate-200/60 backdrop-blur-sm">
+        <div class="flex justify-between items-center mb-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-brand-600 text-white flex items-center justify-center shadow-sm">
+              <i class="fas fa-chart-simple text-sm"></i>
+            </div>
+            <div>
+              <h3 class="font-display font-bold text-base text-slate-900 leading-tight">Profile completion</h3>
+              <p class="text-xs text-slate-700">Fill in all required fields to maximise matches</p>
+            </div>
           </div>
-          <div class="progress-bar">
-            <div class="progress" id="progressBar"></div>
+          <div id="progressPercentage" class="font-display font-extrabold text-3xl text-brand-700">0%</div>
+        </div>
+
+        <div class="w-full h-3 rounded-full bg-slate-300/80 overflow-hidden shadow-inner">
+          <div id="progressBar" class="h-full rounded-full bg-gradient-to-r from-brand-500 to-brand-700 shadow-sm transition-all duration-500" style="width: 0%;"></div>
+        </div>
+
+        <p class="text-xs text-slate-700 mt-4 flex items-center gap-1.5">
+          <i class="fas fa-info-circle text-brand-700"></i>
+          <span>A complete profile increases your funding approval chances by up to <strong class="text-slate-900">70%</strong>.</span>
+        </p>
+      </div>
+
+      <!-- Alerts -->
+      <div id="message" class="message px-5 py-4 rounded-xl text-sm font-medium"></div>
+
+      <!-- Loading -->
+      <div id="loading" class="loading items-center gap-3 bg-slate-200/60 backdrop-blur-sm border border-slate-300/60 rounded-xl px-5 py-4">
+        <div class="spinner"></div>
+        <p class="text-sm text-slate-700 font-medium">Saving your profile...</p>
+      </div>
+
+      <!-- Form (frosted, matches progress card) -->
+      <form id="businessProfileForm" class="bg-slate-200/60 backdrop-blur-sm rounded-2xl border border-slate-300/60 shadow-sm p-6 sm:p-10">
+
+        <!-- Section: Business Information -->
+        <div class="mb-8">
+          <div class="flex items-center gap-2.5 mb-5">
+            <div class="w-9 h-9 rounded-lg bg-brand-600 text-white flex items-center justify-center shadow-sm">
+              <i class="fas fa-building text-sm"></i>
+            </div>
+            <h2 class="font-display font-bold text-lg text-slate-900">Business information</h2>
           </div>
-          <p style="margin-top: 1rem; color: #666; font-size: 0.9rem">
-            Complete your profile to increase your chances of funding approval
-            by up to 70%
-          </p>
-        </div>
 
-        <div class="message" id="message"></div>
-        <div class="loading" id="loading">
-          <div class="spinner"></div>
-          <p>Saving your profile...</p>
-        </div>
-
-        <form id="businessProfileForm">
-          <div class="form-grid">
-            <!-- Business Information -->
-            <div class="form-group">
-              <label for="businessName" class="required">Business Name</label>
-              <input
-                type="text"
-                id="businessName"
-                required
-                placeholder="Enter your official business name"
-              />
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+              <label for="businessName" class="block text-xs font-semibold text-slate-800 mb-1.5">
+                Business name <span class="text-rose-600">*</span>
+              </label>
+              <input type="text" id="businessName" required placeholder="Enter your official business name"
+                class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white/70 text-sm text-slate-900 focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100 transition" />
             </div>
 
-            <div class="form-group">
-              <label for="ownerName">Owner Name</label>
-              <input
-                type="text"
-                id="ownerName"
-                placeholder="Full name of business owner"
-              />
+            <div>
+              <label for="ownerName" class="block text-xs font-semibold text-slate-800 mb-1.5">Owner name</label>
+              <input type="text" id="ownerName" placeholder="Full name of business owner"
+                class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white/70 text-sm text-slate-900 focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100 transition" />
             </div>
 
-            <div class="form-group">
-              <label for="registrationNumber">Registration Number</label>
-              <input
-                type="text"
-                id="registrationNumber"
-                placeholder="CIPC/Company registration number"
-              />
+            <div>
+              <label for="registrationNumber" class="block text-xs font-semibold text-slate-800 mb-1.5">Registration number</label>
+              <input type="text" id="registrationNumber" placeholder="CIPC / Company registration number"
+                class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white/70 text-sm text-slate-900 focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100 transition" />
             </div>
 
-            <div class="form-group">
-              <label for="businessSector" class="required"
-                >Business Sector</label
-              >
-              <select id="businessSector" required>
-                <option value="">Select Your Industry</option>
-                <option value="Agriculture">Agriculture & Farming</option>
-                <option value="Technology">Technology & IT</option>
+            <div>
+              <label for="businessSector" class="block text-xs font-semibold text-slate-800 mb-1.5">
+                Business sector <span class="text-rose-600">*</span>
+              </label>
+              <select id="businessSector" required
+                class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white/70 text-sm text-slate-900 focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100 transition">
+                <option value="">Select your industry</option>
+                <option value="Agriculture">Agriculture &amp; Farming</option>
+                <option value="Technology">Technology &amp; IT</option>
                 <option value="Manufacturing">Manufacturing</option>
-                <option value="Retail">Retail & E-commerce</option>
+                <option value="Retail">Retail &amp; E-commerce</option>
                 <option value="Services">Professional Services</option>
                 <option value="Construction">Construction</option>
-                <option value="Tourism">Tourism & Hospitality</option>
+                <option value="Tourism">Tourism &amp; Hospitality</option>
                 <option value="Healthcare">Healthcare</option>
                 <option value="Education">Education</option>
                 <option value="Creative">Creative Industries</option>
@@ -526,10 +223,13 @@
               </select>
             </div>
 
-            <div class="form-group">
-              <label for="region" class="required">Region/Province</label>
-              <select id="region" required>
-                <option value="">Select Your Region</option>
+            <div>
+              <label for="region" class="block text-xs font-semibold text-slate-800 mb-1.5">
+                Region / Province <span class="text-rose-600">*</span>
+              </label>
+              <select id="region" required
+                class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white/70 text-sm text-slate-900 focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100 transition">
+                <option value="">Select your region</option>
                 <option value="Eastern Cape">Eastern Cape</option>
                 <option value="Free State">Free State</option>
                 <option value="Gauteng">Gauteng</option>
@@ -542,303 +242,251 @@
               </select>
             </div>
 
-            <div class="form-group">
-              <label for="yearsInOperation" class="required"
-                >Years in Operation</label
-              >
-              <input
-                type="number"
-                id="yearsInOperation"
-                min="0"
-                max="50"
-                required
+            <div>
+              <label for="yearsInOperation" class="block text-xs font-semibold text-slate-800 mb-1.5">
+                Years in operation <span class="text-rose-600">*</span>
+              </label>
+              <input type="number" id="yearsInOperation" min="0" max="50" required
                 placeholder="How many years has your business been operating?"
-              />
+                class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white/70 text-sm text-slate-900 focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100 transition" />
             </div>
 
-            <div class="form-group">
-              <label for="annualRevenue">Annual Revenue (ZAR)</label>
-              <input
-                type="number"
-                id="annualRevenue"
-                min="0"
-                step="1000"
-                placeholder="Estimated annual revenue in Rands"
-              />
+            <div>
+              <label for="annualRevenue" class="block text-xs font-semibold text-slate-800 mb-1.5">Annual revenue (ZAR)</label>
+              <input type="number" id="annualRevenue" min="0" step="1000" placeholder="Estimated annual revenue in Rands"
+                class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white/70 text-sm text-slate-900 focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100 transition" />
             </div>
 
-            <div class="form-group">
-              <label for="numberOfEmployees">Number of Employees</label>
-              <input
-                type="number"
-                id="numberOfEmployees"
-                min="0"
-                placeholder="Current number of employees"
-              />
+            <div>
+              <label for="numberOfEmployees" class="block text-xs font-semibold text-slate-800 mb-1.5">Number of employees</label>
+              <input type="number" id="numberOfEmployees" min="0" placeholder="Current number of employees"
+                class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white/70 text-sm text-slate-900 focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100 transition" />
             </div>
           </div>
+        </div>
 
-          <!-- Text Areas - Full Width -->
-          <div class="form-group full-width">
-            <label for="businessDescription" class="required"
-              >Business Description</label
-            >
-            <textarea
-              id="businessDescription"
-              placeholder="Describe your business, products, services, and unique value proposition..."
-              required
-            ></textarea>
+        <!-- Section: Narratives -->
+        <div class="mb-8">
+          <div class="flex items-center gap-2.5 mb-5">
+            <div class="w-9 h-9 rounded-lg bg-brand-600 text-white flex items-center justify-center shadow-sm">
+              <i class="fas fa-pen-fancy text-sm"></i>
+            </div>
+            <h2 class="font-display font-bold text-lg text-slate-900">Tell your story</h2>
           </div>
 
-          <div class="form-group full-width">
-            <label for="projectDescription" class="required"
-              >Project Description</label
-            >
-            <textarea
-              id="projectDescription"
-              placeholder="Describe the specific project or initiative you need funding for. Include goals, timeline, and expected outcomes..."
-              required
-            ></textarea>
-          </div>
+          <div class="space-y-5">
+            <div>
+              <label for="businessDescription" class="block text-xs font-semibold text-slate-800 mb-1.5">
+                Business description <span class="text-rose-600">*</span>
+              </label>
+              <textarea id="businessDescription" rows="4" required
+                placeholder="Describe your business, products, services, and unique value proposition..."
+                class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white/70 text-sm text-slate-900 resize-y focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100 transition"></textarea>
+            </div>
 
-          <div class="form-group full-width">
-            <label for="fundUsage" class="required"
-              >How will you use the funds?</label
-            >
-            <textarea
-              id="fundUsage"
-              placeholder="Provide a detailed breakdown of how you plan to use the funding (equipment, marketing, salaries, etc.)..."
-              required
-            ></textarea>
-          </div>
+            <div>
+              <label for="projectDescription" class="block text-xs font-semibold text-slate-800 mb-1.5">
+                Project description <span class="text-rose-600">*</span>
+              </label>
+              <textarea id="projectDescription" rows="4" required
+                placeholder="Describe the specific project or initiative you need funding for. Include goals, timeline, and expected outcomes..."
+                class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white/70 text-sm text-slate-900 resize-y focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100 transition"></textarea>
+            </div>
 
-          <div class="form-actions">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              onclick="saveProfile()"
-            >
-              <i class="fas fa-save"></i> Save Profile
-            </button>
-            <button type="submit" class="btn btn-primary">
-              <i class="fas fa-search-dollar"></i> Find Funding Opportunities
-            </button>
+            <div>
+              <label for="fundUsage" class="block text-xs font-semibold text-slate-800 mb-1.5">
+                How will you use the funds? <span class="text-rose-600">*</span>
+              </label>
+              <textarea id="fundUsage" rows="4" required
+                placeholder="Provide a detailed breakdown of how you plan to use the funding (equipment, marketing, salaries, etc.)..."
+                class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white/70 text-sm text-slate-900 resize-y focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100 transition"></textarea>
+            </div>
           </div>
-        </form>
-      </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-slate-300/60">
+          <button type="button" onclick="saveProfile()"
+            class="px-6 py-3 rounded-xl bg-white/80 hover:bg-white text-slate-800 border-2 border-slate-300 font-semibold text-sm transition-all flex items-center justify-center gap-2">
+            <i class="fas fa-save text-xs"></i>
+            <span>Save Profile</span>
+          </button>
+          <button type="submit"
+            class="px-6 py-3 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold text-sm shadow-md shadow-brand-600/20 transition-all flex items-center justify-center gap-2">
+            <i class="fas fa-search-dollar text-xs"></i>
+            <span>Find Funding Opportunities</span>
+          </button>
+        </div>
+      </form>
+
     </div>
+  </main>
 
-    <script>
-      // Supabase configuration
-      const SUPABASE_URL = "https://ovvvwbtexnbxzacizokr.supabase.co";
-      const SUPABASE_ANON_KEY =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dnZ3YnRleG5ieHphY2l6b2tyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1ODQ5OTEsImV4cCI6MjA3OTE2MDk5MX0.Ii21cw1Iyops8Zo784P-25NKz2m-TCyJ2zWwI4V1kcE";
+  <script>
+    // ============================================================
+    // ⚠️ BACKEND CONTRACT — preserved from original
+    // ============================================================
+    const SUPABASE_URL = "https://ovvvwbtexnbxzacizokr.supabase.co";
+    const SUPABASE_ANON_KEY =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dnZ3YnRleG5ieHphY2l6b2tyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1ODQ5OTEsImV4cCI6MjA3OTE2MDk5MX0.Ii21cw1Iyops8Zo784P-25NKz2m-TCyJ2zWwI4V1kcE";
 
-      const supabaseClient = window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_ANON_KEY
-      );
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-      // DOM elements
-      const form = document.getElementById("businessProfileForm");
-      const message = document.getElementById("message");
-      const loading = document.getElementById("loading");
-      const progressBar = document.getElementById("progressBar");
-      const progressPercentage = document.getElementById("progressPercentage");
+    const form = document.getElementById("businessProfileForm");
+    const message = document.getElementById("message");
+    const loading = document.getElementById("loading");
+    const progressBar = document.getElementById("progressBar");
+    const progressPercentage = document.getElementById("progressPercentage");
 
-      // Check authentication and load existing data
-      document.addEventListener("DOMContentLoaded", async () => {
-        await checkAuth();
-        await loadExistingProfile();
+    document.addEventListener("DOMContentLoaded", async () => {
+      await checkAuth();
+      await loadExistingProfile();
+    });
+
+    async function checkAuth() {
+      const userData = localStorage.getItem("fundfinder_user");
+      if (!userData) { window.location.href = "login.html"; return; }
+      const user = JSON.parse(userData);
+      if (user.role !== "SMME") { window.location.href = "index.html"; return; }
+    }
+
+    async function loadExistingProfile() {
+      const userData = JSON.parse(localStorage.getItem("fundfinder_user"));
+      try {
+        const { data: profile, error } = await supabaseClient
+          .from("smmes").select("*").eq("user_id", userData.id).single();
+
+        if (profile && !error) {
+          document.getElementById("businessName").value = profile.business_name || "";
+          document.getElementById("ownerName").value = profile.owner_name || "";
+          document.getElementById("registrationNumber").value = profile.registration_number || "";
+          document.getElementById("businessSector").value = profile.business_sector || "";
+          document.getElementById("region").value = profile.region || "";
+          document.getElementById("yearsInOperation").value = profile.years_in_operation || "";
+          document.getElementById("annualRevenue").value = profile.annual_revenue || "";
+          document.getElementById("numberOfEmployees").value = profile.number_of_employees || "";
+          document.getElementById("businessDescription").value = profile.business_description || "";
+          document.getElementById("projectDescription").value = profile.project_description || "";
+          document.getElementById("fundUsage").value = profile.fund_usage || "";
+          updateProgressBar();
+        }
+      } catch (error) {
+        console.log("No existing profile found");
+      }
+    }
+
+    function updateProgressBar() {
+      const fields = [
+        "businessName", "businessSector", "region", "yearsInOperation",
+        "businessDescription", "projectDescription", "fundUsage",
+      ];
+      let completed = 0;
+      fields.forEach((field) => {
+        const value = document.getElementById(field).value;
+        if (value && value.trim() !== "") completed++;
       });
+      const progress = (completed / fields.length) * 100;
+      progressBar.style.width = `${progress}%`;
+      progressPercentage.textContent = `${Math.round(progress)}%`;
+    }
 
-      async function checkAuth() {
-        const userData = localStorage.getItem("fundfinder_user");
+    document.querySelectorAll("input, select, textarea").forEach((el) => {
+      el.addEventListener("input", updateProgressBar);
+    });
 
-        if (!userData) {
-          window.location.href = "login.html";
-          return;
-        }
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      await saveProfile(true);
+    });
 
-        const user = JSON.parse(userData);
-        if (user.role !== "SMME") {
-          window.location.href = "index.html";
-          return;
-        }
+    async function saveProfile(redirect = false) {
+      const userData = JSON.parse(localStorage.getItem("fundfinder_user"));
+      const formData = {
+        user_id: userData.id,
+        business_name: document.getElementById("businessName").value,
+        owner_name: document.getElementById("ownerName").value,
+        registration_number: document.getElementById("registrationNumber").value,
+        business_sector: document.getElementById("businessSector").value,
+        region: document.getElementById("region").value,
+        years_in_operation: parseInt(document.getElementById("yearsInOperation").value),
+        annual_revenue: document.getElementById("annualRevenue").value
+          ? parseFloat(document.getElementById("annualRevenue").value) : null,
+        number_of_employees: document.getElementById("numberOfEmployees").value
+          ? parseInt(document.getElementById("numberOfEmployees").value) : null,
+        business_description: document.getElementById("businessDescription").value,
+        project_description: document.getElementById("projectDescription").value,
+        fund_usage: document.getElementById("fundUsage").value,
+      };
+
+      if (!formData.business_name || !formData.business_sector || !formData.region ||
+          !formData.years_in_operation || !formData.business_description ||
+          !formData.project_description || !formData.fund_usage) {
+        showMessage("Please fill in all required fields", "error");
+        return;
       }
 
-      async function loadExistingProfile() {
-        const userData = JSON.parse(localStorage.getItem("fundfinder_user"));
+      loading.classList.add("active");
 
-        try {
-          const { data: profile, error } = await supabaseClient
-            .from("smmes")
-            .select("*")
-            .eq("user_id", userData.id)
-            .single();
+      try {
+        const { data: existingProfile } = await supabaseClient
+          .from("smmes").select("id").eq("user_id", userData.id).single();
 
-          if (profile && !error) {
-            // Pre-fill form with existing data
-            document.getElementById("businessName").value =
-              profile.business_name || "";
-            document.getElementById("ownerName").value =
-              profile.owner_name || "";
-            document.getElementById("registrationNumber").value =
-              profile.registration_number || "";
-            document.getElementById("businessSector").value =
-              profile.business_sector || "";
-            document.getElementById("region").value = profile.region || "";
-            document.getElementById("yearsInOperation").value =
-              profile.years_in_operation || "";
-            document.getElementById("annualRevenue").value =
-              profile.annual_revenue || "";
-            document.getElementById("numberOfEmployees").value =
-              profile.number_of_employees || "";
-            document.getElementById("businessDescription").value =
-              profile.business_description || "";
-            document.getElementById("projectDescription").value =
-              profile.project_description || "";
-            document.getElementById("fundUsage").value =
-              profile.fund_usage || "";
-
-            updateProgressBar();
-          }
-        } catch (error) {
-          console.log("No existing profile found");
+        let result;
+        if (existingProfile) {
+          result = await supabaseClient.from("smmes").update(formData).eq("user_id", userData.id);
+        } else {
+          result = await supabaseClient.from("smmes").insert([formData]);
         }
+        if (result.error) throw result.error;
+
+        showMessage(
+          "Profile saved successfully!" + (redirect ? " Redirecting to funding opportunities..." : ""),
+          "success"
+        );
+
+        if (redirect) {
+          setTimeout(() => { window.location.href = "smme-funding-opportunities.html"; }, 2000);
+        }
+      } catch (error) {
+        console.error("Error saving profile:", error);
+        showMessage("Error saving profile: " + error.message, "error");
+      } finally {
+        loading.classList.remove("active");
       }
+    }
 
-      function updateProgressBar() {
-        const fields = [
-          "businessName",
-          "businessSector",
-          "region",
-          "yearsInOperation",
-          "businessDescription",
-          "projectDescription",
-          "fundUsage",
-        ];
+    function showMessage(text, type) {
+      message.textContent = text;
+      message.className = "message px-5 py-4 rounded-xl text-sm font-medium " +
+        (type === "success"
+          ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+          : "bg-rose-50 text-rose-800 border border-rose-200");
+    }
 
-        let completed = 0;
-        fields.forEach((field) => {
-          const value = document.getElementById(field).value;
-          if (value && value.trim() !== "") {
-            completed++;
-          }
-        });
+    function logout() {
+      localStorage.removeItem("fundfinder_user");
+      window.location.href = "login.html";
+    }
 
-        const progress = (completed / fields.length) * 100;
-        progressBar.style.width = `${progress}%`;
-        progressPercentage.textContent = `${Math.round(progress)}%`;
-      }
+    // Mobile menu
+    const mobileMenuBtn = document.getElementById("mobile-menu-btn");
+    const mobileMenu = document.getElementById("mobile-menu");
+    const mobileMenuIcon = document.getElementById("mobile-menu-icon");
 
-      // Update progress bar as user types
-      document
-        .querySelectorAll("input, select, textarea")
-        .forEach((element) => {
-          element.addEventListener("input", updateProgressBar);
-        });
-
-      // Form submission
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        await saveProfile(true); // true indicates redirect after save
+    if (mobileMenuBtn) {
+      mobileMenuBtn.addEventListener("click", () => {
+        const hidden = mobileMenu.classList.contains("hidden");
+        if (hidden) {
+          mobileMenu.classList.remove("hidden");
+          mobileMenuIcon.classList.remove("fa-bars");
+          mobileMenuIcon.classList.add("fa-times");
+        } else {
+          mobileMenu.classList.add("hidden");
+          mobileMenuIcon.classList.remove("fa-times");
+          mobileMenuIcon.classList.add("fa-bars");
+        }
       });
-
-      async function saveProfile(redirect = false) {
-        const userData = JSON.parse(localStorage.getItem("fundfinder_user"));
-        const formData = {
-          user_id: userData.id,
-          business_name: document.getElementById("businessName").value,
-          owner_name: document.getElementById("ownerName").value,
-          registration_number:
-            document.getElementById("registrationNumber").value,
-          business_sector: document.getElementById("businessSector").value,
-          region: document.getElementById("region").value,
-          years_in_operation: parseInt(
-            document.getElementById("yearsInOperation").value
-          ),
-          annual_revenue: document.getElementById("annualRevenue").value
-            ? parseFloat(document.getElementById("annualRevenue").value)
-            : null,
-          number_of_employees: document.getElementById("numberOfEmployees")
-            .value
-            ? parseInt(document.getElementById("numberOfEmployees").value)
-            : null,
-          business_description: document.getElementById("businessDescription")
-            .value,
-          project_description:
-            document.getElementById("projectDescription").value,
-          fund_usage: document.getElementById("fundUsage").value,
-        };
-
-        // Validate required fields
-        if (
-          !formData.business_name ||
-          !formData.business_sector ||
-          !formData.region ||
-          !formData.years_in_operation ||
-          !formData.business_description ||
-          !formData.project_description ||
-          !formData.fund_usage
-        ) {
-          showMessage("Please fill in all required fields", "error");
-          return;
-        }
-
-        loading.classList.add("active");
-
-        try {
-          // Check if profile already exists
-          const { data: existingProfile } = await supabaseClient
-            .from("smmes")
-            .select("id")
-            .eq("user_id", userData.id)
-            .single();
-
-          let result;
-          if (existingProfile) {
-            // Update existing profile
-            result = await supabaseClient
-              .from("smmes")
-              .update(formData)
-              .eq("user_id", userData.id);
-          } else {
-            // Insert new profile
-            result = await supabaseClient.from("smmes").insert([formData]);
-          }
-
-          if (result.error) throw result.error;
-
-          showMessage(
-            "Profile saved successfully!" +
-              (redirect ? " Redirecting to funding opportunities..." : ""),
-            "success"
-          );
-
-          if (redirect) {
-            // Redirect to funding opportunities page
-            setTimeout(() => {
-              window.location.href = "smme-funding-opportunities.html";
-            }, 2000);
-          }
-        } catch (error) {
-          console.error("Error saving profile:", error);
-          showMessage("Error saving profile: " + error.message, "error");
-        } finally {
-          loading.classList.remove("active");
-        }
-      }
-
-      function showMessage(text, type) {
-        message.textContent = text;
-        message.className = `message ${type}`;
-      }
-
-      function logout() {
-        localStorage.removeItem("fundfinder_user");
-        window.location.href = "login.html";
-      }
-    </script>
-  </body>
+    }
+  </script>
+</body>
 </html>
